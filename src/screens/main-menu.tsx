@@ -1,15 +1,17 @@
 // MainMenu.tsx
+import { GamePhase } from '../types/game.types';
+
 interface MainMenuProps {
-  onStartGame: () => void;
+  onTransition: (nextPhase: GamePhase) => void;
 }
 
-export function MainMenu({ onStartGame }: MainMenuProps) {
+export function MainMenu({ onTransition }: MainMenuProps) {
   // Look mom, no DOM manipulation, no IDs, no selectors!
   return (
     <div className="menu-screen">
-      <h1>Love Letter</h1>
-      <p>A game of risk, deduction, and luck.</p>
-      <button onClick={onStartGame}>Play Game</button>
+      <h1>Zoo Deduce</h1>
+      <p>Deduce your fellow zoo animals</p>
+      <button onClick={ () => onTransition(GamePhase.Gameplay)}>Play Game</button>
     </div>
   );
 }

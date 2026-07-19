@@ -1,0 +1,41 @@
+
+/* src/index.css */
+:root {
+    --color-peacock: #ff4d94;
+    --bg-peacock: #ffe6f2;
+
+    --color-tiger: #d11aff;
+    --bg-tiger: #f9e6ff;
+
+    --color-lion: #ff9900;
+    --bg-lion: #fff2e6;
+
+    --color-rhino: #3366ff;
+    --bg-rhino: #e6ecff;
+
+    --color-chameleon: #33cc33;
+    --bg-chameleon: #e6ffe6;
+
+    --color-stagbeetle: #996633;
+    --bg-stagbeetle: #f5f0eb;
+
+    --color-beaver: #00cccc;
+    --bg-beaver: #e6ffff;
+
+    --color-owl: #999999;
+    --bg-owl: #f2f2f2;
+
+    --color-meerkat: #cc0000;
+    --bg-meerkat: #ffe6e6;
+}
+
+body {
+    margin: 0;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    background-color: #f0f2f5;
+    color: #1a1a1a;
+    font-family: system-ui, -apple-system, sans-serif;
+}
