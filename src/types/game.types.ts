@@ -41,7 +41,7 @@ export interface PlayerData {
 export interface GameStateSnapshot {
   players: PlayerData[];
   deck: CardData[];
-  burnCard: CardData | null; // The hidden card removed at start of round
+  burnedCards: CardData[] | null; // The hidden card removed at start of round
   currentPlayerIndex: number; // Index pointer to active player in players array
   winnerId: string | null; // Tracks who won the current round
 }
