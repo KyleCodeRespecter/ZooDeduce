@@ -1,56 +1,83 @@
 /* src/components/game/UserDiscardField.css */
 
 .user-discard-zone {
-    margin-top: 24px;
-    padding: 16px;
-    background-color: darkgray;
-    border: 2px dashed #b5b5b5;
-    border-radius: 12px;
-    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.05);
+  margin-top: 24px;
+  padding: 16px;
+  background-color: darkgray;
+  border: 2px dashed #b5b5b5;
+  border-radius: 12px;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.05);
 }
 
 .user-discard-zone h4 {
-    margin: 0 0 12px 0;
-    font-size: 1rem;
-    color: #666666;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+  margin: 0 0 12px 0;
+  font-size: 1rem;
+  color: #666666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .discard-history-row {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap; /* Allows cards to wrap neatly if a player plays a lot of cards */
-    min-height: 42px; /* Keeps layout stable even when empty */
-    align-items: center;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap; /* Allows cards to wrap neatly if a player plays a lot of cards */
+  min-height: 42px; /* Keeps layout stable even when empty */
+  align-items: center;
 }
 
 /* MINI HISTORICAL CARD PILLS */
 .mini-history-card {
-    padding: 6px 14px;
-    border: 2px solid #333333;
-    border-radius: 20px; /* Gives it a clean pill/token shape */
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: #1a1a1a;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    transition: transform 0.15s ease;
+  padding: 6px 14px;
+  border: 2px solid #333333;
+  border-radius: 20px; /* Gives it a clean pill/token shape */
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: transform 0.15s ease;
 }
 
 .mini-history-card:hover {
-    transform: scale(1.05);
+  transform: scale(1.05);
 }
 
 /* THEMED COLOR SHIFT CODES EXTRACTED FROM GLOBAL STYLES */
-.theme-peacock   { border-color: var(--color-peacock);   background: var(--bg-peacock); }
-.theme-countess   { border-color: var(--color-tiger);   background: var(--bg-tiger); }
-.theme-king       { border-color: var(--color-lion);       background: var(--bg-lion); }
-.theme-prince     { border-color: var(--color-rhino);     background: var(--bg-rhino); }
-.theme-handmaid   { border-color: var(--color-chameleon);   background: var(--bg-chameleon); }
-.theme-baron      { border-color: var(--color-stagbeetle);      background: var(--bg-stagbeetle); }
-.theme-chancellor { border-color: var(--color-beaver); background: var(--bg-beaver); }
-.theme-priest     { border-color: var(--color-owl);     background: var(--bg-owl); }
-.theme-guard      { border-color: var(--color-meerkat);      background: var(--bg-meerkat); }
+.theme-peacock {
+  border-color: var(--color-peacock);
+  background: var(--bg-peacock);
+}
+.theme-tiger {
+  border-color: var(--color-tiger);
+  background: var(--bg-tiger);
+}
+.theme-lion {
+  border-color: var(--color-lion);
+  background: var(--bg-lion);
+}
+.theme-rhino {
+  border-color: var(--color-rhino);
+  background: var(--bg-rhino);
+}
+.theme-chameleon {
+  border-color: var(--color-chameleon);
+  background: var(--bg-chameleon);
+}
+.theme-stagbeetle {
+  border-color: var(--color-stagbeetle);
+  background: var(--bg-stagbeetle);
+}
+.theme-beaver {
+  border-color: var(--color-beaver);
+  background: var(--bg-beaver);
+}
+.theme-owl {
+  border-color: var(--color-owl);
+  background: var(--bg-owl);
+}
+.theme-meerkat {
+  border-color: var(--color-meerkat);
+  background: var(--bg-meerkat);
+}
