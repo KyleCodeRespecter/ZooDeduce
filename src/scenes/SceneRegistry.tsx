@@ -1,9 +1,9 @@
 // src/scenes/SceneRegistry.tsx
 import React from 'react';
 import { GamePhase } from '../types/game.types';
-import { MainMenu } from '../screens/main-menu'; // Ensure path matches your project
-import { GameBoard } from './game.board';
-import { GameOver } from './game.over';
+import { MainMenu } from './MainMenu.tsx'; // Ensure path matches your project
+import { GameBoard } from './GameBoard.tsx';
+import { GameOver } from './GameOver.tsx';
 
 /**
  * Define the Prop requirements for ANY component registering as a macro game scene.

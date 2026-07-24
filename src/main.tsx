@@ -1,9 +1,9 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { GamePhase } from './types/game.types';
-import { SCENE_REGISTRY } from './scenes/scene.registry';
+import { SCENE_REGISTRY } from './scenes/SceneRegistry.tsx';
 import './index.css';
-import { GameEngineProvider } from './engine/game.engine.context.provider.tsx';
+import { GameEngineProvider } from './engine/GameEngineProvider.tsx';
 import { useGameEngineContext } from './engine/game.engine.context.ts';
 
 export function App() {

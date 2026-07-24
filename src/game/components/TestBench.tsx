@@ -1,7 +1,7 @@
 // src/components/game/TestBench.tsx
 import { CardType } from '../../types/game.types';
 import { UserField } from './user.field';
-import { UserDiscardField } from './user.discard.field.tsx';
+import { UserDiscardField } from './UserDiscardField.tsx';
 
 export function TestBench() {
   const mockPlayer = {

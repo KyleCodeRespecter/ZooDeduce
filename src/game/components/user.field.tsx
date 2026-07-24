@@ -1,5 +1,5 @@
 import { CardData } from '../../types/game.types';
-import { Card } from './card.tsx'; // Assuming your file is named Card.tsx
+import { Card } from './Card.tsx'; // Assuming your file is named Card.tsx
 import { UserFieldProps } from '../../types/fields.types.ts';
 
 
