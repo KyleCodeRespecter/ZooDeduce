@@ -1,11 +1,14 @@
-import { CardData } from '../../types/game.types';
-import { Card } from './Card.tsx'; // Assuming your file is named Card.tsx
-import { UserFieldProps } from '../../types/fields.types.ts';
+// src/components/game/UserField.tsx
 
+import { CardData } from '../../types/game.types';
+import { Card } from './Card.tsx';
+import { UserFieldProps } from '../../types/fields.types.ts';
+import './user.field.css';
 
 export function UserField({ player, isMyTurn, onCardPlayed }: UserFieldProps) {
   return (
     <div
+      className={`user-field-zone ${isMyTurn ? 'active-turn' : 'disabled'}`}
       style={{
         marginTop: '40px',
         padding: '20px',
@@ -15,15 +18,10 @@ export function UserField({ player, isMyTurn, onCardPlayed }: UserFieldProps) {
     >
       <h3>{player.name}'s Field</h3>
 
-      {/*
-        This is the functional equivalent of your loop!
-        It iterates through the player.hand array and instantiates a
-        Card component layout row automatically.
-      */}
-      <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+      <div className="user-field-cards-container">
         {player.hand.map((cardItem: CardData) => (
           <Card
-            key={cardItem.id} // Mandatory anchor so React tracks this specific object pointer
+            key={cardItem.id}
             card={cardItem}
             isPlayable={isMyTurn}
             onPlay={onCardPlayed}

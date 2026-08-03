@@ -26,24 +26,20 @@ export interface CardData {
  * Struct-like representation of a player's runtime entity state.
  */
 export interface PlayerData {
-  id: string;           // Unique player slot identifier (e.g., 'player-1')
-  name: string;         // Display name
-  hand: CardData[];     // Current active cards (max 2 during a turn)
-  discardPile: CardType[]; // History of cards played/discarded this round
-  isEliminated: boolean;// True if knocked out of the current round
-  isProtected: boolean; // True if Handmaid effect is active
+  id: string;
+  name: string;
+  hand: CardData[];
+  discardPile: CardType[];
+  isEliminated: boolean;
+  isProtected: boolean;
 }
 
-/**
- * The total snapshot of a match state at any single tick.
- * This is the master object your engine will mutate and your UI will render.
- */
 export interface GameStateSnapshot {
   players: PlayerData[];
   deck: CardData[];
-  burnedCards: CardData[] | null; // The hidden card removed at start of round
-  currentPlayerIndex: number; // Index pointer to active player in players array
-  winnerId: string | null; // Tracks who won the current round
+  burnedCards: CardData[];
+  currentPlayerIndex: number;
+  winnerId: string;
 }
 
 export const CARD_RULES_REGISTRY: Record<CardType, { title: string; description: string }> = {

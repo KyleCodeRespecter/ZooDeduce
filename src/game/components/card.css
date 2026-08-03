@@ -3,32 +3,48 @@
    ========================================================================== */
 .card-component {
     position: relative;
-    width: 240px;
-    height: 360px;
-    border-radius: 16px;
+
+    /*
+      1. ASPECT RATIO & FLUID SIZING
+      Preserves standard 2:3 playing card proportions (240x360).
+      Fluid width scales smoothly between 160px and 240px using viewport/container widths.
+    */
+    width: clamp(10rem, 20vw, 15rem);
+    aspect-ratio: 2 / 3;
+
+    /* Container Query context enables text/badges to scale based on CARD size, not screen size */
+    container-type: inline-size;
+
+    border-radius: clamp(0.5rem, 4cqw, 1rem);
     background: #ffffff;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    padding: 24px;
+
+    /* Padding scales relative to the card's width */
+    padding: clamp(0.75rem, 8cqw, 1.5rem);
     box-sizing: border-box;
+
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    border: 4px solid #333333;
+
+    border: 0.25rem solid #333333;
     transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.2s ease;
     font-family: system-ui, -apple-system, sans-serif;
+    user-select: none;
 }
 
-/* Hover effects when the card is playable (like holding a card in hand) */
+/* Hover effects when the card is playable */
 .card-component.playable {
     cursor: pointer;
 }
 
 .card-component.playable:hover {
-    transform: translateY(-12px) rotate(1deg);
+    /* Using em keeps hover displacement proportional to card scale */
+    transform: translateY(-0.75em) rotate(1deg);
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
 }
 
-/* Grayscale and transparency look when the card is disabled/non-interactive */
+/* Grayscale and transparency look when disabled */
 .card-component.disabled {
     opacity: 0.6;
     filter: grayscale(80%);
@@ -39,10 +55,13 @@
    ========================================================================== */
 .card-value-badge {
     position: absolute;
-    top: 12px;
-    left: 12px;
-    width: 32px;
-    height: 32px;
+    top: clamp(0.4rem, 4cqw, 0.75rem);
+    left: clamp(0.4rem, 4cqw, 0.75rem);
+
+    /* Badge scales dynamically relative to card container width (cqw) */
+    width: clamp(1.5rem, 14cqw, 2rem);
+    height: clamp(1.5rem, 14cqw, 2rem);
+
     background: #333333;
     color: #ffffff;
     border-radius: 50%;
@@ -50,12 +69,12 @@
     align-items: center;
     justify-content: center;
     font-weight: bold;
-    font-size: 1.1rem;
+    font-size: clamp(0.8rem, 7cqw, 1.1rem);
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 .card-body {
-    margin-top: 24px;
+    margin-top: clamp(0.75rem, 8cqw, 1.5rem);
     flex-grow: 1;
     display: flex;
     flex-direction: column;
@@ -64,17 +83,18 @@
 }
 
 .card-title {
-    margin: 0 0 12px 0;
-    font-size: 1.4rem;
+    margin: 0 0 0.5rem 0;
+    /* Font sizes use clamp() to avoid huge text on desktop or unreadable text on mobile */
+    font-size: clamp(1rem, 9cqw, 1.4rem);
     font-weight: 800;
     color: #1a1a1a;
-    letter-spacing: -0.5px;
+    letter-spacing: -0.03em;
 }
 
 .card-description {
-    margin: 40px 0 0 0;
-    font-size: 0.9rem;
-    line-height: 1.4;
+    margin: clamp(0.5rem, 6cqw, 2.5rem) 0 0 0;
+    font-size: clamp(0.75rem, 5.5cqw, 0.9rem);
+    line-height: 1.35;
     color: #555555;
 }
 
@@ -83,13 +103,13 @@
    ========================================================================== */
 .play-card-button {
     width: 100%;
-    padding: 10px 0;
+    padding: clamp(0.35rem, 3.5cqw, 0.625rem) 0;
     background: #1a1a1a;
     color: #ffffff;
     border: none;
-    border-radius: 8px;
+    border-radius: clamp(0.25rem, 3cqw, 0.5rem);
     font-weight: bold;
-    font-size: 0.95rem;
+    font-size: clamp(0.75rem, 6cqw, 0.95rem);
     cursor: pointer;
     transition: background 0.15s ease, transform 0.1s ease;
 }
@@ -105,12 +125,12 @@
 /* ==========================================================================
    DYNAMIC COLOR THEMES BASED ON ENUM STRINGS
    ========================================================================== */
-.card-theme-peacock   { border-color: var(--color-peacock); background: linear-gradient(#ffffff, var(--bg-peacock)); }
-.card-theme-tiger   { border-color: var(--color-tiger); background: linear-gradient(#ffffff, var(--bg-tiger)); }
+.card-theme-peacock    { border-color: var(--color-peacock); background: linear-gradient(#ffffff, var(--bg-peacock)); }
+.card-theme-tiger      { border-color: var(--color-tiger); background: linear-gradient(#ffffff, var(--bg-tiger)); }
 .card-theme-lion       { border-color: var(--color-lion); background: linear-gradient(#ffffff, var(--bg-lion)); }
-.card-theme-rhino     { border-color: var(--color-rhino); background: linear-gradient(#ffffff, var(--bg-rhino)); }
+.card-theme-rhino      { border-color: var(--color-rhino); background: linear-gradient(#ffffff, var(--bg-rhino)); }
 .card-theme-chameleon  { border-color: var(--color-chameleon); background: linear-gradient(#ffffff, var(--bg-chameleon)); }
-.card-theme-stagbeetle     { border-color: var(--color-stagbeetle); background: linear-gradient(#ffffff, var(--bg-stagbeetle)); }
-.card-theme-beaver { border-color: var(--color-beaver); background: linear-gradient(#ffffff, var(--bg-beaver)); }
-.card-theme-owl     { border-color: var(--color-owl); background: linear-gradient(#ffffff, var(--bg-owl)); }
-.card-theme-meerkat      { border-color: var(--color-meerkat); background: linear-gradient(#ffffff, var(--bg-meerkat)); }
+.card-theme-stagbeetle { border-color: var(--color-stagbeetle); background: linear-gradient(#ffffff, var(--bg-stagbeetle)); }
+.card-theme-beaver     { border-color: var(--color-beaver); background: linear-gradient(#ffffff, var(--bg-beaver)); }
+.card-theme-owl        { border-color: var(--color-owl); background: linear-gradient(#ffffff, var(--bg-owl)); }
+.card-theme-meerkat    { border-color: var(--color-meerkat); background: linear-gradient(#ffffff, var(--bg-meerkat)); }

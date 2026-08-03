@@ -4,7 +4,7 @@
 
 .game-board-container {
     display: grid;
-    /* Header takes content height, Workspace gets remaining room, Workspace takes content */
+    /* Header takes content height, Opponents get middle room, Workspace takes bottom */
     grid-template-rows: auto 1fr auto;
 
     /* 100dvh handles mobile dynamic browser bars cleanly */
@@ -33,34 +33,63 @@
 }
 
 /* ==========================================================================
-   OPPONENTS ZONE (Deductive Viewports)
+   OPPONENTS ZONE (Circular / Arc Table Layout)
    ========================================================================== */
 
 .opponents-zone {
-    display: grid;
-    /* Dynamically fit 2-4 opponents without wrapping off screen */
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
-    gap: 1rem;
-    align-content: start;
-    overflow-y: auto; /* Internal scroll ONLY if opponent discards grow huge */
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: clamp(1rem, 2vw, 2.5rem); /* Dynamically scales gap based on viewport width */
+    width: 90%;
+    max-width: 75rem; /* ~1200px equivalent using relative units */
+    margin: 1rem auto;
+    padding: 1rem;
+    perspective: 60rem; /* Subtle 3D depth for table perspective */
+    overflow-y: auto; /* Fallback internal scroll if discards grow huge */
 }
 
+/* Individual opponent viewports arranged around the arc */
 .opponent-viewport {
     display: flex;
     flex-direction: column;
-    padding: 1rem;
+    flex: 1;
+    max-width: clamp(14rem, 20vw, 18rem); /* Bounds width gracefully across screen sizes */
     background-color: #1e1e1e;
-    border-radius: 0.5rem;
-    border: 1px solid #333;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    border: 0.125rem solid #333; /* ~2px relative border */
+    border-radius: 0.75rem;
+    padding: 1rem;
+    box-shadow: 0 0.625rem 1.5rem -0.3125rem rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
+/* Arc Curve Math: Vertical drop scales dynamically with screen height (vh) */
+.opponents-zone > .opponent-viewport:first-child:not(:only-child) {
+    transform: translateY(2.5vh) rotate(3.5deg);
+}
+
+.opponents-zone > .opponent-viewport:last-child:not(:only-child) {
+    transform: translateY(2.5vh) rotate(-3.5deg);
+}
+
+/* Middle player sits higher in the arc */
+.opponents-zone > .opponent-viewport:nth-child(2):nth-last-child(2) {
+    transform: translateY(0) rotate(0deg);
+}
+
+/* Active turn highlight for opponents & client workspace */
 .opponent-viewport.active-turn,
 .client-workspace.active-turn {
     border-color: #00cccc;
-    box-shadow: 0 0 0.75rem rgba(0, 204, 204, 0.25);
+    box-shadow: 0 0 1.25rem rgba(0, 204, 204, 0.25);
 }
 
+/* Elevator lift override when an opponent takes their turn */
+.opponent-viewport.active-turn {
+    transform: translateY(-1vh) scale(1.03) !important;
+}
+
+/* Dim eliminated opponents */
 .opponent-viewport.eliminated {
     opacity: 0.4;
     filter: grayscale(0.8);
@@ -75,4 +104,5 @@
     padding: 1.25rem;
     border-radius: 0.75rem;
     border: 1px solid #2a2a2a;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
