@@ -1,7 +1,7 @@
 // src/components/game/TestBench.tsx
 import { CardType } from '../../types/game.types';
-import { UserField } from './user.field';
-import { UserDiscardField } from './user.discard.field.tsx';
+import { UserField } from './UserField.tsx';
+import { UserDiscardField } from './UserDiscardField.tsx';
 
 export function TestBench() {
   const mockPlayer = {
@@ -24,9 +24,7 @@ export function TestBench() {
     >
       <h3>Engine Test Bench: Visual Card Preview</h3>
       <UserDiscardField
-        player={mockPlayer}
-        isMyTurn={true}
-        onCardPlayed={() => {} }
+        discardPile={mockPlayer.discardPile}
       />
       <UserField
         player={mockPlayer}

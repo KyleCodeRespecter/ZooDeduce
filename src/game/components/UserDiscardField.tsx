@@ -1,16 +1,16 @@
-// src/components/game/UserDiscardField.tsx
-import { UserFieldProps } from '../../types/fields.types';
 import { CardType } from '../../types/game.types';
-import './user.discard.field.css'; // 👈 IMPORT THE NEW STYLE SYSTEM HERE
+import { UserDiscardFieldProps } from '../../types/fields.types';
+import './user.discard.field.css';
 
-export function UserDiscardField({ player }: UserFieldProps) {
+export function UserDiscardField({
+  discardPile,
+  title,
+}: UserDiscardFieldProps) {
   return (
     <div className="user-discard-zone">
-      {' '}
-      {/* 👈 Clean CSS Class Selector */}
-      <h4>{player.name}'s Played Cards</h4>
+      {title && <h4>{title}</h4>}
       <div className="discard-history-row">
-        {player.discardPile.map((type: CardType, index: number) => {
+        {discardPile.map((type: CardType, index: number) => {
           const cardName = CardType[type];
 
           return (

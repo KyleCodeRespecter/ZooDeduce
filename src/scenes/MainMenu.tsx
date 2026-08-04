@@ -1,5 +1,5 @@
 // MainMenu.tsx
-import { GamePhase } from '../types/game.types';
+import { GamePhase } from '../types/game.types.ts';
 
 interface MainMenuProps {
   onTransition: (nextPhase: GamePhase) => void;
