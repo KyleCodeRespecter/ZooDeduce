@@ -31,7 +31,7 @@ html, body {
 }
 
 /* ==========================================================================
-   OPPONENTS ZONE (Horizontal scroll remains for opponents if needed)
+   OPPONENTS ZONE
    ========================================================================== */
 .opponents-zone {
     display: flex;
@@ -65,6 +65,16 @@ html, body {
     opacity: 0.35;
     filter: grayscale(0.9) brightness(0.7);
     pointer-events: none;
+}
+
+.opponent-name {
+    display: flex;
+    justify-content: center;
+}
+
+.card-count-indicator {
+    display: flex;
+    padding: 0.25rem 0.5rem;
 }
 
 /* ==========================================================================
@@ -142,6 +152,8 @@ html, body {
     background-color: #1a1a1a;
     border-radius: 0.5rem;
     padding: clamp(1rem, 2vw, 1.5rem);
+    display: flex;
+    flex-direction: column;
 }
 
 .client-hand-zone {
@@ -150,7 +162,9 @@ html, body {
     justify-content: center;
     align-items: center;
     gap: clamp(0.6rem, 1.2vw, 1rem);
-    height: 100%;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
 }
 
 .client-hand-zone .card {

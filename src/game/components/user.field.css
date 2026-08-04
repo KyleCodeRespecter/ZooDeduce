@@ -4,10 +4,27 @@
 .user-field-zone {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    align-items: stretch;
+    justify-content: flex-start;
     width: 100%;
-    padding: 1rem 0;
+    max-height: 100%;
+    min-height: 0;
+    flex: 1;
+}
+
+.user-field-zone h3 {
+    margin: 0;
+    text-align: left;
+    font-size: clamp(1.1rem, 2.5vw, 1.5rem); /* Prevents header scaling from blowing up */
+    padding-bottom: 0.25rem;
+    flex-shrink: 0;          /* Forbids header text from swallowing screen footprint */
+}
+
+.user-field-zone.active-turn {
+    margin-top: 0 ;
+    padding: 1.25rem;
+    border: 0.375rem solid #cccccc;
+    border-radius: 1rem;
 }
 
 /* Centered flex container for active cards */
@@ -15,16 +32,20 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 1.5rem; /* Even spacing between held cards */
+    min-height: 0;
+    padding-top: 1rem;
+    overflow: visible;
+    gap: 1.5rem;
     width: 100%;
     max-width: 600px;
     margin: 0 auto;
+    flex: 1;
 }
-
 /* Base interactive card container */
 .user-card-wrapper {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     cursor: pointer;
+    flex-shrink: 1; /* Allows individual cards to compress instead of exploding layout bounds */
 }
 
 /* Elevate card on hover when it's the player's turn */

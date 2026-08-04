@@ -9,12 +9,6 @@ export function UserField({ player, isMyTurn, onCardPlayed }: UserFieldProps) {
   return (
     <div
       className={`user-field-zone ${isMyTurn ? 'active-turn' : 'disabled'}`}
-      style={{
-        marginTop: '40px',
-        padding: '20px',
-        border: '6px solid #ccc',
-        borderRadius: '16px',
-      }}
     >
       <h3>{player.name}'s Field</h3>
 
