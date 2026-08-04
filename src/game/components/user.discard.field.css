@@ -1,83 +1,72 @@
-/* src/components/game/UserDiscardField.css */
-
 .user-discard-zone {
-  margin-top: 24px;
-  padding: 16px;
-  background-color: darkgray;
-  border: 2px dashed #b5b5b5;
+  width: 100%;
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(0.6rem, 1vw, 0.85rem);
+  background-color: rgba(255, 255, 255, 0.04);
+  border: 2px dashed #3a3a3a;
   border-radius: 12px;
-  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
 }
 
 .user-discard-zone h4 {
-  margin: 0 0 12px 0;
-  font-size: 1rem;
-  color: #666666;
+  margin: 0 0 clamp(0.5rem, 0.8vw, 0.75rem) 0;
+  font-size: clamp(0.85rem, 1.1vw, 1rem);
+  color: #a0a0a0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .discard-history-row {
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap; /* Allows cards to wrap neatly if a player plays a lot of cards */
-  min-height: 42px; /* Keeps layout stable even when empty */
+  gap: clamp(0.4rem, 0.6vw, 8px);
+  flex-wrap: wrap;
+  min-height: clamp(24px, 4vh, 42px);
   align-items: center;
+  width: 100%;
+  min-width: 0;
 }
 
-/* MINI HISTORICAL CARD PILLS */
+.discard-history-row .mini-history-card,
 .mini-history-card {
-  padding: 6px 14px;
+  flex-shrink: 1;
+  max-width: 100%;
+  white-space: normal;
+}
+
+.mini-history-card {
+  padding: clamp(4px, 0.8vw, 6px) clamp(10px, 1.2vw, 14px);
   border: 2px solid #333333;
-  border-radius: 20px; /* Gives it a clean pill/token shape */
-  font-size: 0.85rem;
+  border-radius: 20px;
+  font-size: clamp(0.7rem, 1vw, 0.85rem);
   font-weight: 700;
   color: #1a1a1a;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: clamp(4px, 0.6vw, 6px);
   transition: transform 0.15s ease;
 }
 
 .mini-history-card:hover {
-  transform: scale(1.05);
+  transform: scale(1.03);
 }
 
-/* THEMED COLOR SHIFT CODES EXTRACTED FROM GLOBAL STYLES */
-.theme-peacock {
-  border-color: var(--color-peacock);
-  background: var(--bg-peacock);
-}
-.theme-tiger {
-  border-color: var(--color-tiger);
-  background: var(--bg-tiger);
-}
-.theme-lion {
-  border-color: var(--color-lion);
-  background: var(--bg-lion);
-}
-.theme-rhino {
-  border-color: var(--color-rhino);
-  background: var(--bg-rhino);
-}
-.theme-chameleon {
-  border-color: var(--color-chameleon);
-  background: var(--bg-chameleon);
-}
-.theme-stagbeetle {
-  border-color: var(--color-stagbeetle);
-  background: var(--bg-stagbeetle);
-}
-.theme-beaver {
-  border-color: var(--color-beaver);
-  background: var(--bg-beaver);
-}
-.theme-owl {
-  border-color: var(--color-owl);
-  background: var(--bg-owl);
-}
-.theme-meerkat {
-  border-color: var(--color-meerkat);
-  background: var(--bg-meerkat);
+.theme-peacock   { border-color: var(--color-peacock);   background: var(--bg-peacock); }
+.theme-tiger     { border-color: var(--color-tiger);     background: var(--bg-tiger); }
+.theme-lion      { border-color: var(--color-lion);      background: var(--bg-lion); }
+.theme-rhino     { border-color: var(--color-rhino);     background: var(--bg-rhino); }
+.theme-chameleon { border-color: var(--color-chameleon); background: var(--bg-chameleon); }
+.theme-stagbeetle{ border-color: var(--color-stagbeetle); background: var(--bg-stagbeetle); }
+.theme-beaver    { border-color: var(--color-beaver);    background: var(--bg-beaver); }
+.theme-owl       { border-color: var(--color-owl);       background: var(--bg-owl); }
+.theme-meerkat   { border-color: var(--color-meerkat);   background: var(--bg-meerkat); }
+
+/* Responsive stacking for very narrow screens */
+@media (max-width: 540px) {
+  .user-discard-zone h4,
+  .discard-history-row { min-width: 0; }
 }

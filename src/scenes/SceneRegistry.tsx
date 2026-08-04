@@ -17,11 +17,10 @@ interface BaseSceneProps {
  * THE CENTRAL ENGINE SCENE MAP
  * Maps each GamePhase enum directly to its corresponding React layout prefab.
  */
-export const SCENE_REGISTRY: Record<
-  GamePhase,
-  React.ComponentType<BaseSceneProps>
-> = {
+export const SCENE_REGISTRY: Readonly<
+  Record<GamePhase, React.ComponentType<BaseSceneProps>>
+> = Object.freeze({
   [GamePhase.MainMenu]: MainMenu,
   [GamePhase.Gameplay]: GameBoard,
   [GamePhase.GameOver]: GameOver,
-};
+});

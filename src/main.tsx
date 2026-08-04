@@ -13,7 +13,12 @@ export function App() {
 
   // 2. Fetch the corresponding constructor layout from our registry dictionary
   const ActiveScene = SCENE_REGISTRY[gamePhase];
-
+  if (!ActiveScene) {
+    console.error(
+      `CRITICAL: Unregistered phase '${gamePhase}' hit dispatcher.`,
+    );
+    return <div className="fatal-error">Scene dispatch table mismatch.</div>;
+  }
   return (
     <div className="game-app-viewport">
       {/* 3. Instantiate the active engine widget panel dynamically */}
