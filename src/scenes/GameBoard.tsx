@@ -1,14 +1,14 @@
 // src/scenes/GameBoard.tsx
 
 import React from 'react';
-import { useGameEngineContext } from '../engine/game.engine.context';
+import { useActiveGameState } from '../engine/game.engine.context';
 import { BoardHeader } from '../game/board/BoardHeader';
 import { OpponentViewport } from '../game/board/OpponentViewport';
 import { ClientWorkspace } from '../game/board/ClientWorkspace';
 import '../game/board/board.styles.css';
 
 export const GameBoard: React.FC = () => {
-  const { gameState, playCardAction } = useGameEngineContext();
+  const { gameState, playCardAction } = useActiveGameState();
   const { players, currentPlayerIndex, deck, burnedCards } = gameState;
 
   // Static pointer for local human player (player-1)
