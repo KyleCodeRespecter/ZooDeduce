@@ -1,17 +1,32 @@
-// MainMenu.tsx
+import { useState } from 'react';
 import { GamePhase } from '../types/game.types.ts';
+import { BotCountSelector } from '../game/components/main-menu/OpponentSelector.tsx';
+import { useGameEngineContext } from '../engine/game.engine.context.ts';
 
 interface MainMenuProps {
   onTransition: (nextPhase: GamePhase) => void;
 }
 
 export function MainMenu({ onTransition }: MainMenuProps) {
-  // Look mom, no DOM manipulation, no IDs, no selectors!
+  const [opponentCount, setOpponentCount] = useState<number>(2);
+  const { startGame } = useGameEngineContext();
+
+  const handlePlayGame = () => {
+    // 1. Initialize the engine state structure with the user's choice
+    startGame(opponentCount);
+    onTransition(GamePhase.Gameplay);
+  };
+
   return (
     <div className="menu-screen">
       <h1>Zoo Deduce</h1>
       <p>Deduce your fellow zoo animals</p>
-      <button onClick={ () => onTransition(GamePhase.Gameplay)}>Play Game</button>
+
+      <BotCountSelector onBotCountChange={setOpponentCount} />
+
+      <button className="play-game-button" onClick={handlePlayGame}>
+        Play Game
+      </button>
     </div>
   );
 }

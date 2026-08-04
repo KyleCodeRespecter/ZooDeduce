@@ -7,12 +7,17 @@ import { gameLogger} from '../ultils/logger/logger.ts';
 
 export function GameEngineProvider({ children }: { children: React.ReactNode }) {
   const [gamePhase, setGamePhase] = useState<GamePhase>(GamePhase.MainMenu);
-  const [gameState, _setGameState] = useState<GameStateSnapshot>(() => initializeMatch(['player1', 'player2', 'player3']));
+  const [gameState, setGameState] = useState<GameStateSnapshot | null>(null);
 
   useEffect(() => {
     if (gamePhase != GamePhase.Gameplay) {
       return;
     }
+    if (!gameState)
+    {
+      return;
+    }
+
     if (!gameState.burnedCards) {
       gameLogger.logSystemAlert(
         'CRITICAL SUBSYSTEM ANOMALY: burnCards data structure is NULL. ' +
@@ -48,8 +53,30 @@ export function GameEngineProvider({ children }: { children: React.ReactNode }) 
     gameLogger.closeGroup();
   }, [gameState, gamePhase]);
 
+  const startGame = (opponentCount: number) => {
+    // Generate the player array dynamically based on the input number
+    const playerNames = [
+      'HumanPlayer',
+      ...Array.from(
+        { length: opponentCount },
+        (_, i) => `Bot_${i + 1}`,
+      ),
+    ];
+
+    // Initialize the engine match data structure
+    const initialSnapshot = initializeMatch(playerNames);
+
+    // Save it to state so the gameplay scene can read it
+    setGameState(initialSnapshot);
+  };
+
   const playCardAction = (cardId: string) => {
-    // Grab the player executing the move for our timeline log example
+    if (!gameState) {
+      console.error(
+        'Action rejected: Cannot play card action while gameState is null.',
+      );
+      return;
+    }
     const activePlayer = gameState.players[gameState.currentPlayerIndex];
 
     gameLogger.logPlayerAction(
@@ -60,7 +87,7 @@ export function GameEngineProvider({ children }: { children: React.ReactNode }) 
 
   return (
     <GameEngineContext.Provider
-      value={{ gameState, gamePhase, setGamePhase, playCardAction }}
+      value={{ gameState, gamePhase, setGamePhase, playCardAction, startGame }}
     >
       {children}
     </GameEngineContext.Provider>
