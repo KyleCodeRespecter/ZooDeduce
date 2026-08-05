@@ -73,12 +73,30 @@ export function handleCardPlayPipeline(
 export function handleStartTurn(
   currentSnapshot: GameStateSnapshot,
 ): GameStateSnapshot {
-  const nextState = JSON.parse(
-    JSON.stringify(currentSnapshot),
-  ) as GameStateSnapshot;
-  const activePlayer = nextState.players[nextState.currentPlayerIndex];
+  let nextState = JSON.parse(JSON.stringify(currentSnapshot)) as GameStateSnapshot;
+
+  let activePlayer = nextState.players[nextState.currentPlayerIndex];
+
+  // 3. Skip Eliminated Players Loop
+  let safetyCounter = 0;
+  while (activePlayer.isEliminated && safetyCounter < nextState.players.length) {
+    nextState.currentPlayerIndex = (nextState.currentPlayerIndex + 1) % nextState.players.length;
+    activePlayer = nextState.players[nextState.currentPlayerIndex];
+    safetyCounter++;
+  }
+
+  // 4. Check for an empty deck at the exact moment of turn start drawing
+  if (nextState.deck.length === 0) {
+    console.warn(`[ENGINE]: ${activePlayer.name} starts turn, but draw pile is completely empty.`);
+    // Turn starts, but no card is appended to the hand. Return state as-is.
+    return nextState;
+  }
+
+  // 5. Safe Card Draw Execution (Runs only if 1 or more cards exist)
   const cardDrawn = drawCard(nextState.deck);
   activePlayer.hand.push(cardDrawn.drawnCard);
   nextState.deck = cardDrawn.remainingDeck;
+
   return nextState;
 }
+

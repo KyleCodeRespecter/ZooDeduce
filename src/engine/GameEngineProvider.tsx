@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { GameEngineContext } from './game.engine.context.ts';
 import { GamePhase, GameStateSnapshot, PlayerConfig} from '../types/game.types.ts';
-import { handleCardPlayPipeline, initializeMatch } from './game.manager.ts';
+import { handleCardPlayPipeline, handleStartTurn, initializeMatch } from './game.manager.ts';
 import { gameLogger} from '../ultils/logger/logger.ts';
 import { useBotBrain } from './bot-logic/use.bot.decision.ts';
 import { useEngineLogging } from './use.engine.logging.ts';
@@ -20,11 +20,11 @@ export function GameEngineProvider({ children }: { children: React.ReactNode }) 
     }
     const activePlayer = gameState.players[gameState.currentPlayerIndex];
 
-    // 1. Run the pure state pipeline to calculate the new snapshot
-    const updatedSnapshot = handleCardPlayPipeline(gameState, cardId);
+    const stateAfterPlay = handleCardPlayPipeline(gameState, cardId);
 
-    // 2. Save it back to React state to trigger re-renders and the logger
-    setGameState(updatedSnapshot);
+    const finalizedSnapshot = handleStartTurn(stateAfterPlay);
+
+    setGameState(finalizedSnapshot);
     gameLogger.logPlayerAction(
       activePlayer.name,
       `triggered a card resolution pipeline for instance ID: ${cardId}`,
@@ -41,11 +41,10 @@ export function GameEngineProvider({ children }: { children: React.ReactNode }) 
       })),
     ];
 
-    // Initialize the engine match data structure
-    const initialSnapshot = initializeMatch(setupConfigs);
+    const readyToPlaySnapshot = handleStartTurn(initializeMatch(setupConfigs));
 
-    // Save it to state so the gameplay scene can read it
-    setGameState(initialSnapshot);
+    setGameState(readyToPlaySnapshot);
+    setGamePhase(GamePhase.Gameplay);
   };
 
   //useEffects
