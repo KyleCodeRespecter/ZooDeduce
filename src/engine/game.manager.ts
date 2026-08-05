@@ -69,3 +69,16 @@ export function handleCardPlayPipeline(
 
   return nextState;
 }
+
+export function handleStartTurn(
+  currentSnapshot: GameStateSnapshot,
+): GameStateSnapshot {
+  const nextState = JSON.parse(
+    JSON.stringify(currentSnapshot),
+  ) as GameStateSnapshot;
+  const activePlayer = nextState.players[nextState.currentPlayerIndex];
+  const cardDrawn = drawCard(nextState.deck);
+  activePlayer.hand.push(cardDrawn.drawnCard);
+  nextState.deck = cardDrawn.remainingDeck;
+  return nextState;
+}
