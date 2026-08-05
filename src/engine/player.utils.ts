@@ -1,4 +1,4 @@
-import { PlayerData, CardData } from '../types/game.types';
+import { PlayerData, CardData, PlayerConfig } from '../types/game.types';
 import { drawCard } from './deck.utils';
 
 /**
@@ -6,10 +6,11 @@ import { drawCard } from './deck.utils';
  * Factory function that instantiates a baseline structural data packet
  * for a new player. Hands and discard piles start empty.
  */
-export function createPlayer(id: string, name: string): PlayerData {
+export function createPlayer(id: string, config: PlayerConfig): PlayerData {
   return {
     id,
-    name,
+    name: config.name,
+    isBot:config.isBot,
     hand: [],
     discardPile: [],
     isEliminated: false,
