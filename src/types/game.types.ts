@@ -30,8 +30,14 @@ export interface PlayerData {
   name: string;
   hand: CardData[];
   discardPile: CardType[];
+  isBot: boolean
   isEliminated: boolean;
   isProtected: boolean;
+}
+
+export interface PlayerConfig {
+  name: string;
+  isBot: boolean;
 }
 
 export interface GameStateSnapshot {

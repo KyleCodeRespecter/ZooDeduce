@@ -1,16 +1,16 @@
 import { createFreshDeck, shuffleDeck, drawCard } from './deck.utils';
 import { createPlayer, dealStartingHands } from './player.utils';
-import { GameStateSnapshot, CardData } from '../types/game.types';
+import { GameStateSnapshot, CardData, PlayerConfig, PlayerData } from '../types/game.types';
 
-export function initializeMatch(playerNames: string[]): GameStateSnapshot {
+export function initializeMatch(playerConfigs: PlayerConfig[]): GameStateSnapshot {
   // 1. Generate core components
-  const rawPlayers = playerNames.map((name, index) =>
-    createPlayer(`player-${index + 1}`, name),
+  const players: PlayerData[] = playerConfigs.map((config) =>
+    createPlayer(crypto.randomUUID(), config),
   );
   const freshDeck = createFreshDeck();
   let currentDeck = shuffleDeck(freshDeck);
 
-  const totalBurnedCards = playerNames.length > 2 ? 1 : 4;
+  const totalBurnedCards = playerConfigs.length > 2 ? 1 : 4;
   const burnedCards : CardData[] = [];
   for (let i = 0; i < totalBurnedCards; i++) {
     const resultCardData = drawCard(currentDeck);
@@ -20,7 +20,7 @@ export function initializeMatch(playerNames: string[]): GameStateSnapshot {
 
   // 3. Pass the data through the dealer pipeline
   const { updatedPlayers, remainingDeck } = dealStartingHands(
-    rawPlayers,
+    players,
     currentDeck,
   );
 
@@ -30,6 +30,73 @@ export function initializeMatch(playerNames: string[]): GameStateSnapshot {
     deck: remainingDeck,
     burnedCards,
     currentPlayerIndex: 0,
-    winnerId: null,
+    winnerId: '',
   };
 }
+
+export function handleCardPlayPipeline(
+  currentSnapshot: GameStateSnapshot,
+  cardId: string,
+): GameStateSnapshot {
+  // 1. Create a deep copy to keep state mutations pure and immutable
+  const nextState = JSON.parse(
+    JSON.stringify(currentSnapshot),
+  ) as GameStateSnapshot;
+
+  // 2. Identify the active player
+  const activePlayer = nextState.players[nextState.currentPlayerIndex];
+
+  // 3. Find the index of the clicked card in their hand
+  const cardIndex = activePlayer.hand.findIndex((card) => card.id === cardId);
+
+  // Guard check: ensure the card actually exists in their hand
+  if (cardIndex === -1) {
+    console.error(
+      `Player ${activePlayer.name} tried to play missing card ID: ${cardId}`,
+    );
+    return currentSnapshot; // Return unchanged state safely
+  }
+
+  // 4. Splice (remove) the card from the hand array
+  const [playedCard] = activePlayer.hand.splice(cardIndex, 1);
+
+  // 5. Push the type of the card into the player's discard pile history
+  activePlayer.discardPile.push(playedCard.type);
+
+  // 6. Advance the turn index to the next player in rotation
+  nextState.currentPlayerIndex =
+    (nextState.currentPlayerIndex + 1) % nextState.players.length;
+
+  return nextState;
+}
+
+export function handleStartTurn(
+  currentSnapshot: GameStateSnapshot,
+): GameStateSnapshot {
+  let nextState = JSON.parse(JSON.stringify(currentSnapshot)) as GameStateSnapshot;
+
+  let activePlayer = nextState.players[nextState.currentPlayerIndex];
+
+  // 3. Skip Eliminated Players Loop
+  let safetyCounter = 0;
+  while (activePlayer.isEliminated && safetyCounter < nextState.players.length) {
+    nextState.currentPlayerIndex = (nextState.currentPlayerIndex + 1) % nextState.players.length;
+    activePlayer = nextState.players[nextState.currentPlayerIndex];
+    safetyCounter++;
+  }
+
+  // 4. Check for an empty deck at the exact moment of turn start drawing
+  if (nextState.deck.length === 0) {
+    console.warn(`[ENGINE]: ${activePlayer.name} starts turn, but draw pile is completely empty.`);
+    // Turn starts, but no card is appended to the hand. Return state as-is.
+    return nextState;
+  }
+
+  // 5. Safe Card Draw Execution (Runs only if 1 or more cards exist)
+  const cardDrawn = drawCard(nextState.deck);
+  activePlayer.hand.push(cardDrawn.drawnCard);
+  nextState.deck = cardDrawn.remainingDeck;
+
+  return nextState;
+}
+

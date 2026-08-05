@@ -11,12 +11,9 @@ export const GameBoard: React.FC = () => {
   const { gameState, playCardAction } = useActiveGameState();
   const { players, currentPlayerIndex, deck, burnedCards } = gameState;
 
-  // Static pointer for local human player (player-1)
-  const CLIENT_ID = 'player-1';
-
   // Resolve active, client, and opponent player data views
   const activePlayer = players[currentPlayerIndex];
-  const clientPlayer = players.find((p) => p.id === CLIENT_ID) || players[0];
+  const clientPlayer = players[0];
   const opponents = players.filter((p) => p.id !== clientPlayer.id);
 
   return (
