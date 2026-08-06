@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { GameEngineContext } from './game.engine.context.ts';
 import { GamePhase, GameStateSnapshot, PlayerConfig} from '../types/game.types.ts';
-import { handleCardPlayPipeline, handleStartTurn, initializeMatch } from './game.manager.ts';
+import { handleCardPlayPipeline, handleEndGame, handleStartTurn, initializeMatch } from './game.manager.ts';
 import { gameLogger} from '../ultils/logger/logger.ts';
 import { useBotBrain } from './bot-logic/use.bot.decision.ts';
 import { useEngineLogging } from './use.engine.logging.ts';
@@ -40,23 +40,34 @@ export function GameEngineProvider({ children }: { children: React.ReactNode }) 
         isBot: true,
       })),
     ];
-
     const readyToPlaySnapshot = handleStartTurn(initializeMatch(setupConfigs));
-
     setGameState(readyToPlaySnapshot);
     setGamePhase(GamePhase.Gameplay);
+  };
+
+  const endGame = (gameSnapshot: GameStateSnapshot) => {
+    handleEndGame(gameSnapshot);
+    setGamePhase(GamePhase.GameOver);
   };
 
   //useEffects
   useEngineLogging(gamePhase, gameState, setGamePhase);
   useBotBrain({ gamePhase, gameState, playCardAction });
 
+  // determine winner
+  useEffect(() => {
+    if (gameState?.winnerId.length)
+    {
+      setGamePhase(GamePhase.GameOver);
+    }
+  },[gameState]);
+
 
 
 
   return (
     <GameEngineContext.Provider
-      value={{ gameState, gamePhase, setGamePhase, playCardAction, startGame }}
+      value={{ gameState, gamePhase, setGamePhase, playCardAction, startGame, endGame }}
     >
       {children}
     </GameEngineContext.Provider>

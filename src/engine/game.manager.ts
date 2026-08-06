@@ -88,6 +88,7 @@ export function handleStartTurn(
   // 4. Check for an empty deck at the exact moment of turn start drawing
   if (nextState.deck.length === 0) {
     console.warn(`[ENGINE]: ${activePlayer.name} starts turn, but draw pile is completely empty.`);
+    nextState.winnerId = activePlayer.id;
     // Turn starts, but no card is appended to the hand. Return state as-is.
     return nextState;
   }
@@ -96,6 +97,20 @@ export function handleStartTurn(
   const cardDrawn = drawCard(nextState.deck);
   activePlayer.hand.push(cardDrawn.drawnCard);
   nextState.deck = cardDrawn.remainingDeck;
+
+  return nextState;
+}
+
+export function handleEndGame(currentSnapshot: GameStateSnapshot): GameStateSnapshot
+{
+  let nextState = JSON.parse(
+    JSON.stringify(currentSnapshot),
+  ) as GameStateSnapshot;
+
+  if (!nextState.winnerId.length)
+  {
+    throw new Error(`Could not identify the winning player`);
+  }
 
   return nextState;
 }

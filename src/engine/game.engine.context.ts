@@ -7,6 +7,7 @@ interface GameContextType {
   setGamePhase: (gamePhase: GamePhase) => void;
   playCardAction: (cardID: string) => void;
   startGame: (opponentCount: number) => void;
+  endGame: (gameStateSnapshot: GameStateSnapshot) => void;
 }
 
 export const GameEngineContext = createContext<GameContextType | undefined>(
@@ -27,13 +28,28 @@ export function useActiveGameState() {
 
   if (context.gameState === null) {
     throw new Error(
-      'CRITICAL: useActiveGameState was used, but the game has not been initialized yet. '
+      'CRITICAL: useActiveGameState was used, but the game has not been initialized yet. ',
     );
   }
 
   // We return everything from the context, but overwrite gameState with a guaranteed type
   return {
     ...context,
-    gameState: context.gameState
+    gameState: context.gameState,
+  };
+}
+
+export function useEndGameState() {
+  const context = useActiveGameState();
+
+  if (!context.gameState.winnerId.length) {
+    throw new Error(
+      'CRITICAL: useEndGameState was used, but the game has not determined a winner yet. ',
+    );
+  }
+
+  return {
+    ...context,
+    gameState: context.gameState,
   };
 }

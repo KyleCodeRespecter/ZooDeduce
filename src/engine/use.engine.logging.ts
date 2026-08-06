@@ -32,11 +32,13 @@ export function useEngineLogging(
       gameState.players.map((player, idx) => ({
         Index: idx,
         Name: player.name,
+        Id: player.id,
         Active: idx === gameState.currentPlayerIndex ? '👉 ACTIVE' : '',
         Bot: player.isBot ? '🤖 YES' : '👤 NO',
         CardsInHand: player.hand.map((card) => CardType[card.type]).join(', '),
         DiscardPileHistory: player.discardPile.map((type) => CardType[type]).join(', '),
         IsEliminated: player.isEliminated,
+        IsProtected: player.isProtected
       })),
     );
 
