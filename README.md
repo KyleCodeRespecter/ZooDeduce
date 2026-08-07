@@ -21,8 +21,6 @@ Make sure you have Node.js installed on your machine.
 
 ### Installation
 1. Clone the repository:
-   git clone https://github.com
-   cd zoo-deduce
 2. Install project dependencies:
    npm install
 3. Boot up the local hot-reloading development server:
