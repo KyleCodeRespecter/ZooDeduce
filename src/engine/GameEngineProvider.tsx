@@ -19,24 +19,42 @@ export function GameEngineProvider({
   const [gamePhase, setGamePhase] = useState<GamePhase>(GamePhase.MainMenu);
   const [gameState, setGameState] = useState<GameStateSnapshot | null>(null);
 
-  const playCardAction = (cardId: string) => {
-    if (!gameState) {
-      console.error(
-        'Action rejected: Cannot play card action while gameState is null.',
-      );
-      return;
-    }
+  const playCardAction = (
+    cardId: string,
+    selectedTargetId: string | null = null,
+  ) => {
+    if (!gameState) return;
     const activePlayer = gameState.players[gameState.currentPlayerIndex];
 
-    const stateAfterPlay = handleCardPlayPipeline(gameState, cardId);
+    // 1. Run engine pipeline (will halt early for humans if targetId is null)
+    const stateAfterPlay = handleCardPlayPipeline(
+      gameState,
+      cardId,
+      selectedTargetId,
+    );
 
+    // 2. Human Overlay Check: If engine returned an active target request, freeze UI updates
+    if (stateAfterPlay.activeTargetRequest !== null) {
+      setGameState(stateAfterPlay);
+      return;
+    }
+
+    // 3. Complete and advance the rotation turn loop
     const finalizedSnapshot = handleStartTurn(stateAfterPlay);
 
     setGameState(finalizedSnapshot);
     gameLogger.logPlayerAction(
       activePlayer.name,
-      `triggered a card resolution pipeline for instance ID: ${cardId}`,
+      `triggered a card resolution pipeline for instance ID: ${cardId}. Target: ${selectedTargetId ?? 'auto/none'}`,
     );
+  };
+
+  // Explicit UI click execution channel for Human Player Overlays
+  const selectTargetAction = (targetPlayerId: string) => {
+    if (!gameState?.activeTargetRequest) return;
+
+    // Re-run standard actions passing the targeted player's unique identity forward
+    playCardAction(gameState.activeTargetRequest.cardId, targetPlayerId);
   };
 
   const startGame = (opponentCount: number) => {
@@ -85,6 +103,7 @@ export function GameEngineProvider({
         gamePhase,
         setGamePhase,
         playCardAction,
+        selectTargetAction,
         startGame,
         endGame,
       }}

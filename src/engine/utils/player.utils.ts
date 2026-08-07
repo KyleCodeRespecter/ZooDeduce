@@ -1,5 +1,5 @@
-import { PlayerData, CardData, PlayerConfig } from '../types/game.types';
-import { drawCard } from './deck.utils';
+import { PlayerData, CardData, PlayerConfig } from '../../types/game.types.ts';
+import { drawCard } from './deck.utils.ts';
 
 /**
  * 1. PURE PLAYER GENERATION

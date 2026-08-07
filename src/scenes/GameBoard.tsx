@@ -6,6 +6,7 @@ import { BoardHeader } from '../game/board/BoardHeader';
 import { OpponentViewport } from '../game/board/OpponentViewport';
 import { ClientWorkspace } from '../game/board/ClientWorkspace';
 import '../game/board/board.styles.css';
+import { TargetSelectionOverlay } from '../game/board/OpponentSelectionOverlay.tsx';
 
 export const GameBoard: React.FC = () => {
   const { gameState, playCardAction } = useActiveGameState();
@@ -24,7 +25,7 @@ export const GameBoard: React.FC = () => {
         deckCount={deck.length}
         burnCount={burnedCards.length}
       />
-
+      <TargetSelectionOverlay />
       {/* 2. Opponents Deductive Viewports Zone */}
       <section className="opponents-zone">
         {opponents.map((opp) => (

@@ -1,4 +1,4 @@
-import { CardData, CardType } from '../types/game.types';
+import { CardData, CardType } from '../../types/game.types.ts';
 
 export function createFreshDeck(): CardData[] {
   // Map out the quantity distribution rules for a standard deck
@@ -25,6 +25,7 @@ export function createFreshDeck(): CardData[] {
       deck.push({
         id: crypto.randomUUID(), // Each card gets a flawless unique identifier
         type: cardType,
+        requiresTarget: true,
       });
     }
   });
