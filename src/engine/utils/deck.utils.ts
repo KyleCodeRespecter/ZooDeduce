@@ -1,6 +1,13 @@
 import { CardData, CardType } from '../../types/game.types.ts';
 
 export function createFreshDeck(): CardData[] {
+
+  const NON_TARGET_REQUIRED_CARDS = [
+    CardType.Chameleon,
+    CardType.Beaver,
+    CardType.Tiger,
+    CardType.Peacock,
+  ];
   // Map out the quantity distribution rules for a standard deck
   const deckDistribution: Record<CardType, number> = {
     [CardType.Peacock]: 1,
@@ -20,12 +27,12 @@ export function createFreshDeck(): CardData[] {
   // Note: Object.entries turns enums into string/number arrays we can loop over
   Object.entries(deckDistribution).forEach(([typeString, quantity]) => {
     const cardType = Number(typeString) as CardType;
-
+    const targetedCard = !NON_TARGET_REQUIRED_CARDS.includes(cardType);
     for (let i = 0; i < quantity; i++) {
       deck.push({
         id: crypto.randomUUID(), // Each card gets a flawless unique identifier
         type: cardType,
-        requiresTarget: true,
+        requiresTarget: targetedCard,
       });
     }
   });

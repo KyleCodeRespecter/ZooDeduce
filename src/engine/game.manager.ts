@@ -8,6 +8,8 @@ import {
   PlayerData,
   CardType,
 } from '../types/game.types';
+import { gameLogger } from '../ultils/logger/logger.ts';
+import { selectOptimalBotTarget } from './bot-logic/bot.manager.ts';
 
 /* ==========================================================================
    PUBLIC
@@ -90,9 +92,18 @@ export function handleCardPlayPipeline(
 
     // Rule B: Assess if the engine can auto-bypass selection menus (1-on-1 or Bots)
     if (shouldBypassTargeting(validTargetIds, playedCard, activePlayer.isBot)) {
-      finalTargetId = validTargetIds[0];
+      if (activePlayer.isBot) {
+        finalTargetId = selectOptimalBotTarget(
+          nextState,
+          activePlayer,
+          validTargetIds,
+          playedCard,
+        );
+      } else {
+        finalTargetId = validTargetIds[0]; // Human auto-bypass selects the lone target
+      }
     } else {
-      // Human path: Block step progress and yield control back to the UI Target Selection Modal
+      // Human path fallback: Halt turn and surface target matrix choices to the UI Overlay
       nextState.activeTargetRequest = { cardId, validTargetIds };
       return nextState;
     }
@@ -104,14 +115,19 @@ export function handleCardPlayPipeline(
   nextState.activeTargetRequest = null;
 
   // Execute rules engine logic behaviors if targeting parameters match up cleanly
-  // if (finalTargetId || !playedCard.requiresTarget) {
-  //   executeCardEffectRules(nextState, playedCard, finalTargetId);
-  // }
+  if (finalTargetId || !playedCard.requiresTarget) {
+    executeCardEffectRules(nextState, playedCard, finalTargetId);
+  }
+
+  const evaluatedState = evaluateAndFinalizeMatch(nextState);
+  if (evaluatedState.winnerId) {
+    return evaluatedState; // Return immediately! Do not advance turns if the game is over.
+  }
 
   // Advance turn loop index using our private shifter utility
-  advanceTurnRotation(nextState);
+  advanceTurnRotation(evaluatedState);
 
-  return nextState;
+  return evaluatedState;
 }
 
 /**
@@ -139,6 +155,9 @@ export function handleStartTurn(
     activePlayer = getActivePlayer(nextState);
     safetyCounter++;
   }
+
+  // Resolve chameleon if needed
+  activePlayer.isProtected = false;
 
   // Safely execute turn-start card acquisition
   const cardDrawn = drawCard(nextState.deck);
@@ -225,7 +244,7 @@ function executeFizzleResolution(
   cardIndex: number,
   playedCard: CardData,
 ): GameStateSnapshot {
-  console.log(
+  gameLogger.log(
     `[ENGINE]: All targets protected. ${activePlayer.name}'s ${CardType[playedCard.type]} fizzled.`,
   );
 
@@ -242,13 +261,13 @@ function executeFizzleResolution(
 function evaluateAndFinalizeMatch(state: GameStateSnapshot): GameStateSnapshot {
   const activePlayers = state.players.filter((p) => !p.isEliminated);
 
-  // Victory Condition A: Last Player Standing
+  // --- Condition A: Last person standing ---
   if (activePlayers.length === 1) {
     state.winnerId = activePlayers[0].id;
     return state;
   }
 
-  // Victory Condition B: Deck Exhaustion Showdown (High Card Value Winner)
+  // --- Condition B: Deck exhaustion tie-breaker ---
   if (state.deck.length === 0 && activePlayers.length > 0) {
     const playersWithMaxValues = activePlayers.map((player) => ({
       player,
@@ -269,23 +288,91 @@ function evaluateAndFinalizeMatch(state: GameStateSnapshot): GameStateSnapshot {
   return state;
 }
 
+/* ==========================================================================
+   PRIVATE Card resolvers
+   ========================================================================== */
 /**
- * Router utility to fire algorithmic data calculations per card value type.
+ * Activates target immunity shields for the active player.
  */
-// function executeCardEffectRules(
-//   state: GameStateSnapshot,
-//   playedCard: CardData,
-//   targetId: string | null,
-// ): void {
-//   // ──────────────────────────────────────────────────────────────────────
-//   // TODO: CORE CARD RESOLUTIONS ACCELERATION IN THE NEXT STEP
-//   // ──────────────────────────────────────────────────────────────────────
-//   switch (playedCard.type) {
-//     case CardType.Beaver:
-//       // resolveBeaverMechanic(state);
-//       break;
-//     case CardType.Owl:
-//       // resolveOwlMechanic(state, targetId);
-//       break;
-//   }
-// }
+function resolveChameleonEffect(state: GameStateSnapshot): void {
+  const activePlayer = getActivePlayer(state);
+  activePlayer.isProtected = true;
+  gameLogger.log(`[EFFECT]: ${activePlayer.name} deployed Chameleon protection.`);
+}
+
+/**
+ * Instantly knocks out the active player and flushes their hand to discard logs.
+ */
+function resolvePeacockEffect(state: GameStateSnapshot): void {
+  const activePlayer = getActivePlayer(state);
+  activePlayer.isEliminated = true;
+
+  while (activePlayer.hand.length > 0) {
+    const card = activePlayer.hand.pop();
+    if (card) {
+      activePlayer.discardPile.push(card.type);
+    }
+  }
+  gameLogger.log(
+    `[EFFECT]: ${activePlayer.name} was forced to trigger Peacock suicide elimination.`,
+  );
+}
+
+/**
+ * Reveals an unprotected target's card parameters to the player.
+ */
+function resolveOwlEffect(state: GameStateSnapshot, targetId: string | null): void {
+  if (!targetId) return;
+
+  const activePlayer = getActivePlayer(state);
+  const targetOpponent = state.players.find(p => p.id === targetId);
+
+  if (targetOpponent) {
+    gameLogger.log(
+      `[EFFECT]: ${activePlayer.name} utilized Owl to peek at ${targetOpponent.name}.`,
+    );
+    // Future Note: Attach state trackers here if surfacing cards to a human UI overlay panel
+  }
+}
+
+/**
+ * Forces a target choice execution route to discard their active card layout.
+ */
+function resolveRhinoEffect(state: GameStateSnapshot, targetId: string | null): void {
+  if (!targetId) return;
+
+  const activePlayer = getActivePlayer(state);
+  const targetPlayer = state.players.find(p => p.id === targetId);
+
+  if (targetPlayer) {
+    console.log(`[EFFECT]: ${activePlayer.name} targeted ${targetPlayer.name} with Rhino.`);
+    // Future Note: Implement specific discard/draw replacement mechanics here
+  }
+}
+
+
+function executeCardEffectRules(
+  state: GameStateSnapshot,
+  playedCard: CardData,
+  targetId: string | null
+): void {
+  // The router remains thin, clean, and highly readable
+  switch (playedCard.type) {
+    case CardType.Chameleon:
+      resolveChameleonEffect(state);
+      break;
+
+    case CardType.Peacock:
+      resolvePeacockEffect(state);
+      break;
+
+    case CardType.Owl:
+      resolveOwlEffect(state, targetId);
+      break;
+
+    case CardType.Rhino:
+      resolveRhinoEffect(state, targetId);
+      break;
+  }
+}
+

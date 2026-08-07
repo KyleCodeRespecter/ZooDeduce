@@ -1,8 +1,8 @@
-// src/engine/hooks/useBotBrain.ts
 import { useEffect } from 'react';
 import { GamePhase, GameStateSnapshot } from '../../types/game.types.ts';
-import { executeBotDecisionEngine } from './bot.manager.ts';
 import { gameLogger } from '../../ultils/logger/logger.ts';
+import { executeBotCardSelection } from './bot.manager.ts';
+
 
 interface UseBotBrainProps {
   gamePhase: GamePhase;
@@ -27,7 +27,7 @@ export function useBotBrain({
       return;
     }
 
-    const targetedCardId = executeBotDecisionEngine(activePlayer);
+    const targetedCardId = executeBotCardSelection(activePlayer);
     if (!targetedCardId) {
       return;
     }
