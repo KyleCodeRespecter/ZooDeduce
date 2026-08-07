@@ -1,5 +1,5 @@
-import { createFreshDeck, shuffleDeck, drawCard } from './deck.utils';
-import { createPlayer, dealStartingHands } from './player.utils';
+import { createFreshDeck, shuffleDeck, drawCard } from './utils/deck.utils.ts';
+import { createPlayer, dealStartingHands } from './utils/player.utils.ts';
 import { GameStateSnapshot, CardData, PlayerConfig, PlayerData } from '../types/game.types';
 
 export function initializeMatch(playerConfigs: PlayerConfig[]): GameStateSnapshot {
@@ -31,44 +31,71 @@ export function initializeMatch(playerConfigs: PlayerConfig[]): GameStateSnapsho
     burnedCards,
     currentPlayerIndex: 0,
     winnerId: '',
+    activeTargetRequest: null
   };
 }
 
 export function handleCardPlayPipeline(
   currentSnapshot: GameStateSnapshot,
   cardId: string,
+  explicitTargetId: string | null = null, // Provided by Human UI selection
 ): GameStateSnapshot {
-  // 1. Create a deep copy to keep state mutations pure and immutable
   const nextState = JSON.parse(
     JSON.stringify(currentSnapshot),
   ) as GameStateSnapshot;
-
-  // 2. Identify the active player
   const activePlayer = nextState.players[nextState.currentPlayerIndex];
 
-  // 3. Find the index of the clicked card in their hand
+  // 1. Locate the card index in the hand first
   const cardIndex = activePlayer.hand.findIndex((card) => card.id === cardId);
 
-  // Guard check: ensure the card actually exists in their hand
   if (cardIndex === -1) {
     console.error(
       `Player ${activePlayer.name} tried to play missing card ID: ${cardId}`,
     );
-    return currentSnapshot; // Return unchanged state safely
+    return currentSnapshot;
   }
 
-  // 4. Splice (remove) the card from the hand array
-  const [playedCard] = activePlayer.hand.splice(cardIndex, 1);
+  const playedCard = activePlayer.hand[cardIndex];
+  let finalTargetId = explicitTargetId;
 
-  // 5. Push the type of the card into the player's discard pile history
+  // 2. CHECK TARGETING FIRST: Exit early if a human target selection is required
+  if (playedCard.requiresTarget && !finalTargetId) {
+    if (activePlayer.isBot) {
+      // AI Path: Auto-select target instantly
+      const validTargetIds = nextState.players
+        .filter((p) => p.id !== activePlayer.id && !p.isEliminated)
+        .map((p) => p.id);
+
+      finalTargetId = validTargetIds.length > 0 ? validTargetIds[0] : null;
+    } else {
+      // keep card in hand so it can be resolved after target selection
+      const validTargetIds = nextState.players
+        .filter((p) => p.id !== activePlayer.id && !p.isEliminated)
+        .map((p) => p.id);
+
+      nextState.activeTargetRequest = { cardId, validTargetIds };
+      return nextState;
+    }
+  }
+
+  // 3. RESOLUTION PATH: Target is verified. Safely mutate the hand data now.
+  activePlayer.hand.splice(cardIndex, 1);
   activePlayer.discardPile.push(playedCard.type);
 
-  // 6. Advance the turn index to the next player in rotation
+  // Clear tracking requests now that resolution has officially cleared
+  nextState.activeTargetRequest = null;
+
+  // ────────────────────────────────────────────────────────
+  // TODO: APPLY CARD VALUE EFFECT RULES HERE USING finalTargetId
+  // ────────────────────────────────────────────────────────
+
+  // Advance the turn index to the next player in rotation
   nextState.currentPlayerIndex =
     (nextState.currentPlayerIndex + 1) % nextState.players.length;
 
   return nextState;
 }
+
 
 export function handleStartTurn(
   currentSnapshot: GameStateSnapshot,

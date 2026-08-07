@@ -20,6 +20,7 @@ export enum GamePhase {
 export interface CardData {
   id: string; // Unique instance ID generated via crypto.randomUUID()
   type: CardType;
+  requiresTarget: boolean;
 }
 
 /**
@@ -40,12 +41,18 @@ export interface PlayerConfig {
   isBot: boolean;
 }
 
+export interface TargetRequest {
+  cardId: string;
+  validTargetIds: string[];
+}
+
 export interface GameStateSnapshot {
   players: PlayerData[];
   deck: CardData[];
   burnedCards: CardData[];
   currentPlayerIndex: number;
   winnerId: string;
+  activeTargetRequest: TargetRequest | null;
 }
 
 export const CARD_RULES_REGISTRY: Record<CardType, { title: string; description: string }> = {

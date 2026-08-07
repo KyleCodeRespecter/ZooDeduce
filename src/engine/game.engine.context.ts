@@ -5,6 +5,7 @@ interface GameContextType {
   gameState: GameStateSnapshot | null;
   gamePhase: GamePhase;
   setGamePhase: (gamePhase: GamePhase) => void;
+  selectTargetAction: (targetPlayerId: string) => void;
   playCardAction: (cardID: string) => void;
   startGame: (opponentCount: number) => void;
   endGame: () => void;
