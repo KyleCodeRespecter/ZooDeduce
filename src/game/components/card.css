@@ -75,16 +75,17 @@
 
 .card-body {
     margin-top: clamp(0.75rem, 8cqw, 1.5rem);
-    flex-grow: 1;
     display: flex;
     flex-direction: column;
     justify-content: center;
     text-align: center;
+    flex-grow: 1;
+    min-height: 0;
+    overflow: hidden;
 }
 
 .card-title {
     margin: 0 0 0.5rem 0;
-    /* Font sizes use clamp() to avoid huge text on desktop or unreadable text on mobile */
     font-size: clamp(1rem, 9cqw, 1.4rem);
     font-weight: 800;
     color: #1a1a1a;
@@ -96,8 +97,10 @@
     font-size: clamp(0.75rem, 5.5cqw, 0.9rem);
     line-height: 1.35;
     color: #555555;
+    min-height: 0;
+    overflow-y: auto;
+    white-space: nowrap;
 }
-
 /* ==========================================================================
    PLAY BUTTON
    ========================================================================== */
@@ -112,6 +115,9 @@
     font-size: clamp(0.75rem, 6cqw, 0.95rem);
     cursor: pointer;
     transition: background 0.15s ease, transform 0.1s ease;
+    min-height: 0;
+    overflow-y: auto;
+    white-space: nowrap;
 }
 
 .play-card-button:hover {

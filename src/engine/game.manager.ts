@@ -75,9 +75,12 @@ export function handleStartTurn(
 ): GameStateSnapshot {
   let nextState = JSON.parse(JSON.stringify(currentSnapshot)) as GameStateSnapshot;
 
+  if (nextState.deck.length === 0) {
+    return evaluateAndFinalizeMatch(nextState);
+  }
+
   let activePlayer = nextState.players[nextState.currentPlayerIndex];
 
-  // 3. Skip Eliminated Players Loop
   let safetyCounter = 0;
   while (activePlayer.isEliminated && safetyCounter < nextState.players.length) {
     nextState.currentPlayerIndex = (nextState.currentPlayerIndex + 1) % nextState.players.length;
@@ -85,17 +88,51 @@ export function handleStartTurn(
     safetyCounter++;
   }
 
-  // 4. Check for an empty deck at the exact moment of turn start drawing
-  if (nextState.deck.length === 0) {
-    console.warn(`[ENGINE]: ${activePlayer.name} starts turn, but draw pile is completely empty.`);
-    // Turn starts, but no card is appended to the hand. Return state as-is.
-    return nextState;
-  }
 
-  // 5. Safe Card Draw Execution (Runs only if 1 or more cards exist)
   const cardDrawn = drawCard(nextState.deck);
   activePlayer.hand.push(cardDrawn.drawnCard);
   nextState.deck = cardDrawn.remainingDeck;
+
+  return nextState;
+}
+
+function evaluateAndFinalizeMatch(
+  currentSnapshot: GameStateSnapshot,
+): GameStateSnapshot {
+  const nextState = JSON.parse(
+    JSON.stringify(currentSnapshot),
+  ) as GameStateSnapshot;
+  const activePlayers = nextState.players.filter((p) => !p.isEliminated);
+
+  // Rule A: Last person standing
+  if (activePlayers.length === 1) {
+    nextState.winnerId = activePlayers[0].id;
+    return nextState;
+  }
+
+  // Rule B: Deck exhaustion tie-breaker with joint-winner support
+  const totalCardsLeftToDraw = nextState.deck?.length ?? 0;
+  if (totalCardsLeftToDraw === 0 && activePlayers.length > 0) {
+    // Step 1: Map each player to their highest card value
+    const playersWithMaxValues = activePlayers.map((player) => ({
+      player,
+      maxVal: Math.max(...player.hand.map((c) => c.type), 0),
+    }));
+
+    // Step 2: Find the absolute highest value present across the table
+    const highestValueOverall = Math.max(
+      ...playersWithMaxValues.map((p) => p.maxVal),
+    );
+
+    // Step 3: Filter for all players who share this top score
+    const tiedWinners = playersWithMaxValues
+      .filter((p) => p.maxVal === highestValueOverall)
+      .map((p) => p.player);
+
+    // Step 4: Join IDs together to support your string type field
+    nextState.winnerId = tiedWinners.map((w) => w.id).join(',');
+    return nextState;
+  }
 
   return nextState;
 }

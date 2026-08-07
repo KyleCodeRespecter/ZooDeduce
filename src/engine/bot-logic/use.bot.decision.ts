@@ -38,7 +38,7 @@ export function useBotBrain({
         `[BOT ACTION]: ${activePlayer.name} is committing card play.`,
       );
       playCardAction(targetedCardId);
-    }, 1200);
+    }, 2400);
 
     return () => clearTimeout(botThoughtTimer);
   }, [gameState, gamePhase, playCardAction]);

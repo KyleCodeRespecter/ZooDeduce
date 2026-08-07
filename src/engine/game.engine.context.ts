@@ -7,6 +7,7 @@ interface GameContextType {
   setGamePhase: (gamePhase: GamePhase) => void;
   playCardAction: (cardID: string) => void;
   startGame: (opponentCount: number) => void;
+  endGame: () => void;
 }
 
 export const GameEngineContext = createContext<GameContextType | undefined>(
@@ -18,7 +19,6 @@ export function useGameEngineContext() {
   if (!gameContext) {
     throw new Error('::ERROR:: context must be of type GameContextType');
   }
-
   return gameContext;
 }
 
@@ -27,13 +27,27 @@ export function useActiveGameState() {
 
   if (context.gameState === null) {
     throw new Error(
-      'CRITICAL: useActiveGameState was used, but the game has not been initialized yet. '
+      'CRITICAL: useActiveGameState was used, but the game has not been initialized yet.',
     );
   }
 
-  // We return everything from the context, but overwrite gameState with a guaranteed type
   return {
     ...context,
-    gameState: context.gameState
+    gameState: context.gameState,
+  };
+}
+
+export function useEndGameState() {
+  const context = useActiveGameState();
+
+  if (context.gamePhase !== GamePhase.GameOver) {
+    throw new Error(
+      'CRITICAL: useEndGameState was used, but the game phase is not GameOver.',
+    );
+  }
+
+  return {
+    ...context,
+    gameState: context.gameState,
   };
 }
