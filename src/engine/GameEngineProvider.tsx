@@ -63,7 +63,6 @@ export function GameEngineProvider({
   useEngineLogging(gamePhase, gameState, setGamePhase);
   useBotBrain({ gamePhase, gameState, playCardAction });
 
-  // Inside your GameEngineProvider component:
   useEffect(() => {
     if (
       gamePhase !== GamePhase.Gameplay ||
