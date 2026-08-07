@@ -1,6 +1,6 @@
 import { createFreshDeck, shuffleDeck, drawCard } from './utils/deck.utils.ts';
 import { createPlayer, dealStartingHands } from './utils/player.utils.ts';
-import { GameStateSnapshot, CardData, PlayerConfig, PlayerData } from '../types/game.types';
+import { GameStateSnapshot, CardData, PlayerConfig, PlayerData, CardType } from '../types/game.types';
 
 export function initializeMatch(playerConfigs: PlayerConfig[]): GameStateSnapshot {
   // 1. Generate core components
@@ -38,63 +38,57 @@ export function initializeMatch(playerConfigs: PlayerConfig[]): GameStateSnapsho
 export function handleCardPlayPipeline(
   currentSnapshot: GameStateSnapshot,
   cardId: string,
-  explicitTargetId: string | null = null, // Provided by Human UI selection
+  explicitTargetId: string | null = null,
 ): GameStateSnapshot {
   const nextState = JSON.parse(
     JSON.stringify(currentSnapshot),
   ) as GameStateSnapshot;
   const activePlayer = nextState.players[nextState.currentPlayerIndex];
 
-  // 1. Locate the card index in the hand first
   const cardIndex = activePlayer.hand.findIndex((card) => card.id === cardId);
-
-  if (cardIndex === -1) {
-    console.error(
-      `Player ${activePlayer.name} tried to play missing card ID: ${cardId}`,
-    );
-    return currentSnapshot;
-  }
+  if (cardIndex === -1) return currentSnapshot;
 
   const playedCard = activePlayer.hand[cardIndex];
   let finalTargetId = explicitTargetId;
 
-  // 2. CHECK TARGETING FIRST: Exit early if a human target selection is required
   if (playedCard.requiresTarget && !finalTargetId) {
-    if (activePlayer.isBot) {
-      // AI Path: Auto-select target instantly
-      const validTargetIds = nextState.players
-        .filter((p) => p.id !== activePlayer.id && !p.isEliminated)
-        .map((p) => p.id);
+    // 1. Check if this specific card allows self-targeting (e.g., Rhino is CardType 4)
+    const allowsSelfTarget = playedCard.type === CardType.Rhino;
 
+    // 2. Generate valid targets based on that rule exception
+    const validTargetIds = nextState.players
+      .filter((p) => {
+        if (p.isEliminated) return false;
+        // If it allows self-target, keep the active player. Otherwise, filter them out.
+        return allowsSelfTarget ? true : p.id !== activePlayer.id;
+      })
+      .map((p) => p.id);
+
+    if (activePlayer.isBot) {
+      // AI Path: Choose a valid target instantly
       finalTargetId = validTargetIds.length > 0 ? validTargetIds[0] : null;
     } else {
-      // keep card in hand so it can be resolved after target selection
-      const validTargetIds = nextState.players
-        .filter((p) => p.id !== activePlayer.id && !p.isEliminated)
-        .map((p) => p.id);
-
+      // Human Path: Pass the custom list down to your existing UI Overlay
       nextState.activeTargetRequest = { cardId, validTargetIds };
       return nextState;
     }
   }
 
-  // 3. RESOLUTION PATH: Target is verified. Safely mutate the hand data now.
+  // 3. RESOLUTION PATH
   activePlayer.hand.splice(cardIndex, 1);
   activePlayer.discardPile.push(playedCard.type);
-
-  // Clear tracking requests now that resolution has officially cleared
   nextState.activeTargetRequest = null;
 
   // ────────────────────────────────────────────────────────
   // TODO: APPLY CARD VALUE EFFECT RULES HERE USING finalTargetId
   // ────────────────────────────────────────────────────────
 
-  // Advance the turn index to the next player in rotation
   nextState.currentPlayerIndex =
     (nextState.currentPlayerIndex + 1) % nextState.players.length;
 
   return nextState;
 }
+
 
 
 export function handleStartTurn(
