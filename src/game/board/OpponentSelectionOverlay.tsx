@@ -1,6 +1,7 @@
 import { useGameEngineContext } from '../../engine/game.engine.context.ts';
-import { getCardDescription } from '../../engine/utils/card.utils'; // <-- Import shared utility
+import { getCardDescription } from '../../engine/utils/card.utils';
 import { CardType } from '../../types/game.types';
+import './opponent.selection.overlay.css'; // Make sure this path points to your new CSS file!
 
 export function TargetSelectionOverlay() {
   const { gameState, selectTargetAction } = useGameEngineContext();
@@ -21,18 +22,20 @@ export function TargetSelectionOverlay() {
   );
 
   return (
-    <div style={styles.overlayBackdrop}>
-      <div style={styles.overlayModal}>
-        <h3 style={styles.title}>Playing {cardName}</h3>
-        {/* Inject dynamic rule explanation text into the subtitle layer */}
-        <p style={styles.subtitle}>{cardDescription}</p>
-        <p style={styles.prompt}>Select an opponent to target:</p>
+    <div className="target-overlay-backdrop">
+      <div className="target-overlay-modal">
+        <h3 className="target-overlay-title">Playing {cardName}</h3>
 
-        <div style={styles.buttonContainer}>
+        {/* Inject dynamic rule explanation text into the subtitle layer */}
+        <p className="target-overlay-subtitle">{cardDescription}</p>
+        <p className="target-overlay-prompt">Select an opponent to target:</p>
+
+        {/* Updated from buttonContainer to target-overlay-list to match your CSS file */}
+        <div className="target-overlay-list">
           {validOpponents.map((opponent) => (
             <button
               key={opponent.id}
-              style={styles.targetButton}
+              className="target-player-button"
               onClick={() => selectTargetAction(opponent.id)}
             >
               {opponent.name}
@@ -43,51 +46,3 @@ export function TargetSelectionOverlay() {
     </div>
   );
 }
-// Simple layout styling guidelines
-const styles = {
-  overlayBackdrop: {
-    position: 'fixed' as const,
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 9999,
-  },
-  overlayModal: {
-    backgroundColor: '#2a2a2a',
-    padding: '24px',
-    borderRadius: '8px',
-    boxShadow: '0px 4px 20px rgba(0,0,0,0.5)',
-    textAlign: 'center' as const,
-    maxWidth: '400px',
-    width: '100%',
-    color: '#fff',
-  },
-  title: { margin: '0 0 8px 0' },
-  subtitle: { color: '#ccc', margin: '0 0 20px 0', fontSize: '14px' },
-  buttonContainer: {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '12px',
-  },
-  targetButton: {
-    padding: '12px',
-    backgroundColor: '#4a90e2',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontWeight: 'bold' as const,
-    fontSize: '16px',
-  },
-  prompt: {
-    color: '#fff',
-    margin: '0 0 16px 0',
-    fontSize: '15px',
-    fontWeight: 'bold' as const,
-  },
-};
