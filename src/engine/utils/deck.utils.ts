@@ -30,7 +30,7 @@ export function createFreshDeck(): CardData[] {
     const targetedCard = !NON_TARGET_REQUIRED_CARDS.includes(cardType);
     for (let i = 0; i < quantity; i++) {
       deck.push({
-        id: crypto.randomUUID(), // Each card gets a flawless unique identifier
+        id: crypto.randomUUID(),
         type: cardType,
         requiresTarget: targetedCard,
       });
@@ -41,31 +41,25 @@ export function createFreshDeck(): CardData[] {
 }
 
 /**
- * 2. IMMUTABLE SHUFFLE FUNCTION
  * Takes a deck array, performs a random Fischer-Yates shuffle,
- * and returns a BRAND NEW array without touching the original input.
+ * and returns a new array without touching the original input.
  */
 export function shuffleDeck(originalDeck: CardData[]): CardData[] {
-  // In functional programming, we NEVER mutate inputs directly.
-  // The '...' syntax creates a shallow copy of the array pointer elements.
   const shuffled = [...originalDeck];
 
-  // Standard Fisher-Yates shuffle algorithm
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    // Swap elements
     const temp = shuffled[i];
     shuffled[i] = shuffled[j];
     shuffled[j] = temp;
   }
 
-  return shuffled; // Return the new array tree
+  return shuffled;
 }
 
 /**
- * 3. IMMUTABLE DEAL FUNCTION
  * Simulates dealing a card from the deck.
- * It returns an object containing the drawn card AND the remaining deck.
+ * It returns an object containing the drawn card and the remaining deck.
  */
 export function drawCard(currentDeck: CardData[]): {
   drawnCard: CardData;
@@ -75,10 +69,9 @@ export function drawCard(currentDeck: CardData[]): {
     throw new Error('Cannot draw from an empty deck!');
   }
 
-  // Create a copy of the deck array excluding the first element (index 0)
+  // Create a copy of the deck array excluding the first element
   const remainingDeck = currentDeck.slice(1);
   const drawnCard = currentDeck[0];
 
-  // Return both data points packed together
   return { drawnCard, remainingDeck };
 }

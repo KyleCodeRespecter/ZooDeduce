@@ -19,7 +19,7 @@ export function executeBotCardSelection(botPlayer: PlayerData): string | null {
     return botPlayer.hand[0].id;
   }
 
-  // Strategy Gate: Filter out the suicidal Peacock card
+  // Filter out the suicidal Peacock card
   const survivalPool = botPlayer.hand.filter(
     (card) => card.type !== CardType.Peacock,
   );
@@ -28,7 +28,7 @@ export function executeBotCardSelection(botPlayer: PlayerData): string | null {
     return survivalPool[0].id; // Play the first safe card available
   }
 
-  // Absolute fallback: If holding two Peacocks, it is forced to drop one
+  // If holding two Peacocks, it is forced to drop one. Should never happen
   return botPlayer.hand[0].id;
 }
 
@@ -45,7 +45,7 @@ export function selectOptimalBotTarget(
 
   const isRhino = playedCard.type === CardType.Rhino;
 
-  // Rhino Optimization Rule: Avoid self-targeting with negative card effects unless forced
+  // Avoid self-targeting with negative card effects unless forced
   if (isRhino) {
     const opponentTargets = validTargetIds.filter((id) => id !== botPlayer.id);
     if (opponentTargets.length > 0) {
@@ -55,7 +55,7 @@ export function selectOptimalBotTarget(
     }
   }
 
-  // Standard Target Selection: Pick a random opponent from the pre-filtered safe list
+  // Pick a random opponent from the pre-filtered safe list
   const randomIndex = Math.floor(Math.random() * validTargetIds.length);
   return validTargetIds[randomIndex];
 }

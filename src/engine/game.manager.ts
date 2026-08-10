@@ -1,4 +1,3 @@
-// src/engine/game.manager.ts
 import { createFreshDeck, shuffleDeck, drawCard } from './utils/deck.utils.ts';
 import { createPlayer, dealStartingHands } from './utils/player.utils.ts';
 import {
@@ -10,10 +9,6 @@ import {
 } from '../types/game.types';
 import { gameLogger } from '../ultils/logger/logger.ts';
 import { selectOptimalBotTarget } from './bot-logic/bot.manager.ts';
-
-/* ==========================================================================
-   PUBLIC
-   ========================================================================== */
 
 /**
  * Initializes a new match snapshot, burning initial seed cards and dealing hands.
@@ -28,7 +23,6 @@ export function initializeMatch(
   const freshDeck = createFreshDeck();
   let currentDeck = shuffleDeck(freshDeck);
 
-  // Determine burn count based on lobby size constraints
   const totalBurnedCards = playerConfigs.length > 2 ? 1 : 4;
   const burnedCards: CardData[] = [];
 
@@ -61,7 +55,6 @@ export function handleCardPlayPipeline(
   cardId: string,
   explicitTargetId: string | null = null,
 ): GameStateSnapshot {
-  // Pull out recurring clone boilerplate using our private core utility
   const nextState = cloneSnapshot(currentSnapshot);
   const activePlayer = getActivePlayer(nextState);
 
@@ -72,7 +65,6 @@ export function handleCardPlayPipeline(
 
   let finalTargetId = explicitTargetId;
 
-  // 1. Targeting Gateway Validation
   if (playedCard.requiresTarget && !finalTargetId) {
     const validTargetIds = filterValidTargets(
       nextState,
@@ -80,7 +72,6 @@ export function handleCardPlayPipeline(
       playedCard,
     );
 
-    // Rule A: Automatically resolve card as a fizzle if all opponents are protected
     if (validTargetIds.length === 0) {
       return executeFizzleResolution(
         nextState,
@@ -90,7 +81,7 @@ export function handleCardPlayPipeline(
       );
     }
 
-    // Rule B: Assess if the engine can auto-bypass selection menus (1-on-1 or Bots)
+    // Assess if the engine can auto-bypass selection menus (1-on-1 or Bots)
     if (shouldBypassTargeting(validTargetIds, playedCard, activePlayer.isBot)) {
       if (activePlayer.isBot) {
         finalTargetId = selectOptimalBotTarget(
@@ -103,28 +94,24 @@ export function handleCardPlayPipeline(
         finalTargetId = validTargetIds[0]; // Human auto-bypass selects the lone target
       }
     } else {
-      // Human path fallback: Halt turn and surface target matrix choices to the UI Overlay
       nextState.activeTargetRequest = { cardId, validTargetIds };
       return nextState;
     }
   }
 
-  // 2. Action Resolution Path (Splicing from hand into the discard matrix)
   activePlayer.hand.splice(cardIndex, 1);
   activePlayer.discardPile.push(playedCard.type);
   nextState.activeTargetRequest = null;
 
-  // Execute rules engine logic behaviors if targeting parameters match up cleanly
   if (finalTargetId || !playedCard.requiresTarget) {
     executeCardEffectRules(nextState, playedCard, finalTargetId);
   }
 
   const evaluatedState = evaluateAndFinalizeMatch(nextState);
   if (evaluatedState.winnerId) {
-    return evaluatedState; // Return immediately! Do not advance turns if the game is over.
+    return evaluatedState; // Do not advance turns if the game is over.
   }
 
-  // Advance turn loop index using our private shifter utility
   advanceTurnRotation(evaluatedState);
 
   return evaluatedState;
@@ -138,12 +125,11 @@ export function handleStartTurn(
 ): GameStateSnapshot {
   const nextState = cloneSnapshot(currentSnapshot);
 
-  // Intercept immediately if the card draw pool runs dry at the start of a turn
+  // If no cards to draw we can finalize the game
   if (nextState.deck.length === 0) {
     return evaluateAndFinalizeMatch(nextState);
   }
 
-  // Auto-skip eliminated players down the line using loop indexing
   let activePlayer = getActivePlayer(nextState);
   let safetyCounter = 0;
 
@@ -159,7 +145,6 @@ export function handleStartTurn(
   // Resolve chameleon if needed
   activePlayer.isProtected = false;
 
-  // Safely execute turn-start card acquisition
   const cardDrawn = drawCard(nextState.deck);
   activePlayer.hand.push(cardDrawn.drawnCard);
   nextState.deck = cardDrawn.remainingDeck;
@@ -167,12 +152,8 @@ export function handleStartTurn(
   return nextState;
 }
 
-/* ==========================================================================
-   PRIVATE
-   ========================================================================== */
-
 /**
- * Standardizes snapshot state replication, reducing deep copy memory allocation boilerplate.
+ * Standardizes snapshot state replication
  */
 function cloneSnapshot(snapshot: GameStateSnapshot): GameStateSnapshot {
   return JSON.parse(JSON.stringify(snapshot)) as GameStateSnapshot;
@@ -186,7 +167,7 @@ function getActivePlayer(state: GameStateSnapshot): PlayerData {
 }
 
 /**
- * Increments the current match index loop, auto-cycling cleanly back to 0.
+ * Increments the current match index loop.
  */
 function advanceTurnRotation(state: GameStateSnapshot): void {
   state.currentPlayerIndex =
@@ -231,7 +212,7 @@ function shouldBypassTargeting(
   const isRhino = playedCard.type === CardType.Rhino;
   const hasLoneTarget = validTargetIds.length === 1;
 
-  // Humans auto-bypass if only 1 target choice exists, unless it's a versatile self/target Rhino
+  // Humans auto-bypass if only 1 target choice exists, unless it's a Rhino card
   return hasLoneTarget && !isRhino;
 }
 
@@ -261,13 +242,13 @@ function executeFizzleResolution(
 function evaluateAndFinalizeMatch(state: GameStateSnapshot): GameStateSnapshot {
   const activePlayers = state.players.filter((p) => !p.isEliminated);
 
-  // --- Condition A: Last person standing ---
+  //Condition A: Last person standing
   if (activePlayers.length === 1) {
     state.winnerId = activePlayers[0].id;
     return state;
   }
 
-  // --- Condition B: Deck exhaustion tie-breaker ---
+  //Condition B: Deck exhaustion tie-breaker
   if (state.deck.length === 0 && activePlayers.length > 0) {
     const playersWithMaxValues = activePlayers.map((player) => ({
       player,
@@ -288,9 +269,6 @@ function evaluateAndFinalizeMatch(state: GameStateSnapshot): GameStateSnapshot {
   return state;
 }
 
-/* ==========================================================================
-   PRIVATE Card resolvers
-   ========================================================================== */
 /**
  * Activates target immunity shields for the active player.
  */
@@ -356,7 +334,6 @@ function executeCardEffectRules(
   playedCard: CardData,
   targetId: string | null
 ): void {
-  // The router remains thin, clean, and highly readable
   switch (playedCard.type) {
     case CardType.Chameleon:
       resolveChameleonEffect(state);

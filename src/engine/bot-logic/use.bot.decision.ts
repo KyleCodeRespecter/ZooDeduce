@@ -22,7 +22,6 @@ export function useBotBrain({
 
     const activePlayer = gameState.players[gameState.currentPlayerIndex];
 
-    // Evaluate flag condition cleanly
     if (!activePlayer.isBot || activePlayer.isEliminated) {
       return;
     }

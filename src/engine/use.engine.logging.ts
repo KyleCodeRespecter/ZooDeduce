@@ -1,4 +1,3 @@
-// src/engine/hooks/useEngineLogging.ts
 import { useEffect } from 'react';
 import {
   GamePhase,
