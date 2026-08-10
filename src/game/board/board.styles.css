@@ -30,9 +30,6 @@ html, body {
     flex-shrink: 0;
 }
 
-/* ==========================================================================
-   OPPONENTS ZONE
-   ========================================================================== */
 .opponents-zone {
     display: flex;
     justify-content: center;
@@ -77,9 +74,6 @@ html, body {
     padding: 0.25rem 0.5rem;
 }
 
-/* ==========================================================================
-   CLIENT WORKSPACE (Top-Bar + Bottom-Hand Layout)
-   ========================================================================== */
 .client-workspace {
     display: flex;
     flex-direction: column;
@@ -91,7 +85,6 @@ html, body {
     border: 1px solid #2a2a2a;
 }
 
-/* 🔝 TOP BAR: Title Group | History Zone */
 .client-top-bar {
     display: flex;
     align-items: stretch;
@@ -175,9 +168,6 @@ html, body {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* ==========================================================================
-   ACCESSIBILITY & MOTION PREFERENCES
-   ========================================================================== */
 @media (prefers-reduced-motion: reduce) {
     .opponent-viewport,
     .client-workspace {

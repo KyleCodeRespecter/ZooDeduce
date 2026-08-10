@@ -15,9 +15,7 @@ export const ClientWorkspace: React.FC<ClientWorkspaceProps> = ({
     <section
       className={`client-workspace ${isCurrentTurn ? 'active-turn' : ''}`}
     >
-      {/* 🔝 TOP BAR: Title + Badges | Discard Pile */}
       <div className="client-top-bar">
-        {/* Left Column: Title & Status */}
         <div className="client-info-group">
           <div className="client-title-group">
             <h3>Your Hand</h3>
@@ -31,7 +29,6 @@ export const ClientWorkspace: React.FC<ClientWorkspaceProps> = ({
           </div>
         </div>
 
-        {/* Right Column: Discard Pile (sits next to title) */}
         <div className="client-history-zone">
           <UserDiscardField
             discardPile={discardPile}
@@ -40,7 +37,6 @@ export const ClientWorkspace: React.FC<ClientWorkspaceProps> = ({
         </div>
       </div>
 
-      {/*HAND AREA: Takes remaining vertical space */}
       <div className="client-hand-container">
         <div className="client-hand-zone">
           <UserField

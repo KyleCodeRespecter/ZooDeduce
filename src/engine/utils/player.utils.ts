@@ -2,7 +2,6 @@ import { PlayerData, CardData, PlayerConfig } from '../../types/game.types.ts';
 import { drawCard } from './deck.utils.ts';
 
 /**
- * 1. PURE PLAYER GENERATION
  * Factory function that instantiates a baseline structural data packet
  * for a new player. Hands and discard piles start empty.
  */
@@ -19,9 +18,7 @@ export function createPlayer(id: string, config: PlayerConfig): PlayerData {
 }
 
 /**
- * 2. IMMUTABLE DEALT CARD TRANSFORMATION
- * Gives a card to a specific player. Instead of pushing into the player's
- * internal hand array, it returns a brand-new copy of the player struct.
+ * Gives a card to a specific player.
  */
 export function addCardToPlayerHand(
   player: PlayerData,
@@ -34,7 +31,6 @@ export function addCardToPlayerHand(
 }
 
 /**
- * 3. ROUND INITIALIZATION DISPATCHER
  * Takes a list of players and a shuffled deck, deals 1 starting card
  * to every player, and returns the modified players array and remaining deck.
  */
@@ -59,7 +55,6 @@ export function dealStartingHands(
 }
 
 /**
- * 4. STATE MUTER HELPER: ELIMINATION
  * Knocks a player out of the current round.
  * Automatically flushes their current hand into their discard history pile.
  */
@@ -76,7 +71,6 @@ export function eliminatePlayer(player: PlayerData): PlayerData {
 }
 
 /**
- * 5. STATE MUTER HELPER: PROTECTION (HANDMAID)
  * Applies or removes the Handmaid's protection layer flag on a player.
  */
 export function setPlayerProtection(

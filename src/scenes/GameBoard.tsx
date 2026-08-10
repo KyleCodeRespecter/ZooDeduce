@@ -1,4 +1,3 @@
-// src/scenes/GameBoard.tsx
 
 import React from 'react';
 import { useActiveGameState } from '../engine/game.engine.context';
@@ -19,14 +18,12 @@ export const GameBoard: React.FC = () => {
 
   return (
     <div className="game-board-container">
-      {/* 1. Global Match Telemetry Header */}
       <BoardHeader
         activePlayerName={activePlayer?.name ?? 'Unknown'}
         deckCount={deck.length}
         burnCount={burnedCards.length}
       />
       <TargetSelectionOverlay />
-      {/* 2. Opponents Deductive Viewports Zone */}
       <section className="opponents-zone">
         {opponents.map((opp) => (
           <OpponentViewport
@@ -37,7 +34,6 @@ export const GameBoard: React.FC = () => {
         ))}
       </section>
 
-      {/* 3. Interactive Client Workspace */}
       <ClientWorkspace
         player={clientPlayer}
         isCurrentTurn={activePlayer?.id === clientPlayer.id}

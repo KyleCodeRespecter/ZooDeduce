@@ -26,20 +26,17 @@ export function GameEngineProvider({
     if (!gameState) return;
     const activePlayer = gameState.players[gameState.currentPlayerIndex];
 
-    // 1. Run engine pipeline (will halt early for humans if targetId is null)
     const stateAfterPlay = handleCardPlayPipeline(
       gameState,
       cardId,
       selectedTargetId,
     );
 
-    // 2. Human Overlay Check: If engine returned an active target request, freeze UI updates
     if (stateAfterPlay.activeTargetRequest !== null) {
       setGameState(stateAfterPlay);
       return;
     }
 
-    // 3. Complete and advance the rotation turn loop
     const finalizedSnapshot = handleStartTurn(stateAfterPlay);
 
     setGameState(finalizedSnapshot);
@@ -49,16 +46,13 @@ export function GameEngineProvider({
     );
   };
 
-  // Explicit UI click execution channel for Human Player Overlays
   const selectTargetAction = (targetPlayerId: string) => {
     if (!gameState?.activeTargetRequest) return;
 
-    // Re-run standard actions passing the targeted player's unique identity forward
     playCardAction(gameState.activeTargetRequest.cardId, targetPlayerId);
   };
 
   const startGame = (opponentCount: number) => {
-    // Generate the player array dynamically based on the input number
     const setupConfigs: PlayerConfig[] = [
       { name: 'HumanPlayer_1', isBot: false },
       ...Array.from({ length: opponentCount }, (_, i) => ({
@@ -72,7 +66,6 @@ export function GameEngineProvider({
   };
 
   const endGame = () => {
-    // Single purpose: Lock the game phase to GameOver
     if (gamePhase === GamePhase.GameOver) return;
     setGamePhase(GamePhase.GameOver);
   };

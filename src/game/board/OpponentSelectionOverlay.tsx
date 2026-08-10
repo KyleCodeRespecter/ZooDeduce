@@ -1,4 +1,3 @@
-// src/components/game/TargetSelectionOverlay.tsx
 import { useEffect } from 'react';
 import { useGameEngineContext } from '../../engine/game.engine.context.ts';
 import { getCardDescription } from '../../engine/utils/card.utils';
@@ -9,32 +8,29 @@ export function TargetSelectionOverlay() {
   const { gameState, selectTargetAction } = useGameEngineContext();
 
   const request = gameState?.activeTargetRequest;
-  if (!request || !gameState) return null;
-
-  const activePlayer = gameState.players[gameState.currentPlayerIndex];
-  const playedCard = activePlayer.hand.find((c) => c.id === request.cardId);
+  const activePlayer = gameState?.players[gameState.currentPlayerIndex];
+  const playedCard = activePlayer?.hand.find((c) => c.id === request?.cardId);
 
   const cardName = playedCard ? CardType[playedCard.type] : 'Card';
   const cardDescription = playedCard ? getCardDescription(playedCard.type) : '';
 
-  const validOpponents = gameState.players.filter((p) =>
-    request.validTargetIds.includes(p.id),
-  );
+  const validOpponents = gameState
+    ? gameState.players.filter((p) => request?.validTargetIds.includes(p.id))
+    : [];
 
   useEffect(() => {
-    // 1. Guard: Check if there is exactly 1 valid target remaining
-    const hasSingleTarget = validOpponents.length === 1;
+    if (!request || !playedCard) return;
 
-    // 2. Guard: Ensure the card is NOT a Rhino card (Rhino can target the player themselves)
-    const isNotRhino = playedCard?.type !== CardType.Rhino;
+    const hasSingleTarget = validOpponents.length === 1;
+    const isNotRhino = playedCard.type !== CardType.Rhino;
 
     if (hasSingleTarget && isNotRhino) {
-      // Automatically target the lone opponent without waiting for user input
       selectTargetAction(validOpponents[0].id);
     }
-  }, [validOpponents, playedCard, selectTargetAction]);
+  }, [validOpponents, playedCard, request, selectTargetAction]);
 
-  // If we are auto-selecting this turn, return null early to block the layout flash
+  if (!request || !gameState) return null;
+
   const isNotRhino = playedCard?.type !== CardType.Rhino;
   if (validOpponents.length === 1 && isNotRhino) {
     return null;

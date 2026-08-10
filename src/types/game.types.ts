@@ -18,14 +18,11 @@ export enum GamePhase {
 
 
 export interface CardData {
-  id: string; // Unique instance ID generated via crypto.randomUUID()
+  id: string;
   type: CardType;
   requiresTarget: boolean;
 }
 
-/**
- * Struct-like representation of a player's runtime entity state.
- */
 export interface PlayerData {
   id: string;
   name: string;

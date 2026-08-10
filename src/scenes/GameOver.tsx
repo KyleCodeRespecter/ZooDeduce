@@ -1,4 +1,3 @@
-// src/scenes/GameOver.tsx
 import { GamePhase } from '../types/game.types';
 import { useEndGameState } from '../engine/game.engine.context.ts';
 
