@@ -1,4 +1,3 @@
-// src/components/game/TestBench.tsx
 import { CardType } from '../../types/game.types';
 import { UserField } from './UserField.tsx';
 import { UserDiscardField } from './UserDiscardField.tsx';

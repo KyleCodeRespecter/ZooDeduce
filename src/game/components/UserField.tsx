@@ -1,4 +1,3 @@
-// src/components/game/UserField.tsx
 
 import { CardData } from '../../types/game.types';
 import { Card } from './Card.tsx';

@@ -1,4 +1,3 @@
-/* src/components/game/user.field.css */
 
 /* Main wrapper for the local player's hand area */
 .user-field-zone {
@@ -27,7 +26,6 @@
     border-radius: 1rem;
 }
 
-/* Centered flex container for active cards */
 .user-field-cards-container {
     display: flex;
     justify-content: center;
@@ -41,7 +39,7 @@
     margin: 0 auto;
     flex: 1;
 }
-/* Base interactive card container */
+
 .user-card-wrapper {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     cursor: pointer;
@@ -54,7 +52,7 @@
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
-/* Dim and lock interaction when it's NOT the player's turn */
+/* Dim and lock interaction when it's not the player's turn */
 .user-field-zone.disabled .user-card-wrapper {
     opacity: 0.6;
     cursor: not-allowed;
