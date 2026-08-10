@@ -5,7 +5,6 @@ import { SCENE_REGISTRY } from './scenes/SceneRegistry.tsx';
 import './index.css';
 import { GameEngineProvider } from './engine/GameEngineProvider.tsx';
 import { useGameEngineContext } from './engine/game.engine.context.ts';
-// import { TestBench } from './game/components/TestBench.tsx';
 
 export function App() {
   // 1. Core State-Machine pointer tracker
