@@ -50,6 +50,7 @@ export interface GameStateSnapshot {
   currentPlayerIndex: number;
   winnerId: string;
   activeTargetRequest: TargetRequest | null;
+  targetPeekRequest:  string | null;
 }
 
 export const CARD_RULES_REGISTRY: Record<CardType, { title: string; description: string }> = {

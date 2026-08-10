@@ -1,4 +1,4 @@
-import { PlayerData } from '../../types/game.types';
+import { CardData, PlayerData } from '../../types/game.types';
 
 /**
  * Contract for the global telemetry header tracking match state.
@@ -24,4 +24,11 @@ export interface ClientWorkspaceProps {
   player: PlayerData;
   isCurrentTurn: boolean;
   onPlayCard: (cardId: string) => void;
+}
+
+export interface CardViewOverlayProps {
+  title: string;
+  cardsToShow: CardData[];
+  onAcknowledge: () => void;
+  buttonText?: string;
 }

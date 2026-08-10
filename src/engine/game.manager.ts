@@ -44,6 +44,7 @@ export function initializeMatch(
     currentPlayerIndex: 0,
     winnerId: '',
     activeTargetRequest: null,
+    targetPeekRequest: null
   };
 }
 
@@ -112,6 +113,16 @@ export function handleCardPlayPipeline(
     return evaluatedState; // Do not advance turns if the game is over.
   }
 
+  //this request signals an overlay if the player who initiated was human
+  if (evaluatedState.targetPeekRequest !== null) {
+    const currentActivePlayer = getActivePlayer(evaluatedState);
+
+    if (currentActivePlayer.isBot) {
+      return handlePeekTurn(evaluatedState);
+    }
+    return evaluatedState;
+  }
+
   advanceTurnRotation(evaluatedState);
 
   return evaluatedState;
@@ -150,6 +161,15 @@ export function handleStartTurn(
   nextState.deck = cardDrawn.remainingDeck;
 
   return nextState;
+}
+
+export function handlePeekTurn(currentSnapshot: GameStateSnapshot) {
+  const nextState = cloneSnapshot(currentSnapshot);
+
+  nextState.targetPeekRequest = null;
+  nextState.currentPlayerIndex = (nextState.currentPlayerIndex + 1) % nextState.players.length;
+
+  return handleStartTurn(nextState);
 }
 
 /**
@@ -309,7 +329,7 @@ function resolveOwlEffect(state: GameStateSnapshot, targetId: string | null): vo
     gameLogger.log(
       `[EFFECT]: ${activePlayer.name} utilized Owl to peek at ${targetOpponent.name}.`,
     );
-    // Future Note: Attach state trackers here if surfacing cards to a human UI overlay panel
+    state.targetPeekRequest = targetId;
   }
 }
 

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { GameEngineContext } from './game.engine.context.ts';
 import { GamePhase, GameStateSnapshot, PlayerConfig} from '../types/game.types.ts';
 import {
-  handleCardPlayPipeline,
+  handleCardPlayPipeline, handlePeekTurn,
   handleStartTurn,
   initializeMatch
 } from './game.manager.ts';
@@ -19,6 +19,12 @@ export function GameEngineProvider({
   const [gamePhase, setGamePhase] = useState<GamePhase>(GamePhase.MainMenu);
   const [gameState, setGameState] = useState<GameStateSnapshot | null>(null);
 
+  const dismissPeekAction = () => {
+    if (!gameState) return;
+    const nextState = handlePeekTurn(gameState);
+    setGameState(nextState);
+  };
+
   const playCardAction = (
     cardId: string,
     selectedTargetId: string | null = null,
@@ -32,7 +38,10 @@ export function GameEngineProvider({
       selectedTargetId,
     );
 
-    if (stateAfterPlay.activeTargetRequest !== null) {
+    if (
+      stateAfterPlay.activeTargetRequest !== null ||
+      stateAfterPlay.targetPeekRequest !== null
+    ) {
       setGameState(stateAfterPlay);
       return;
     }
@@ -99,6 +108,7 @@ export function GameEngineProvider({
         selectTargetAction,
         startGame,
         endGame,
+        dismissPeekAction
       }}
     >
       {children}

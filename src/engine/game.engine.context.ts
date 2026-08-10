@@ -9,6 +9,7 @@ interface GameContextType {
   playCardAction: (cardID: string) => void;
   startGame: (opponentCount: number) => void;
   endGame: () => void;
+  dismissPeekAction: () => void;
 }
 
 export const GameEngineContext = createContext<GameContextType | undefined>(
