@@ -12,7 +12,6 @@ export function MainMenu({ onTransition }: MainMenuProps) {
   const { startGame } = useGameEngineContext();
 
   const handlePlayGame = () => {
-    // 1. Initialize the engine state structure with the user's choice
     startGame(opponentCount);
     onTransition(GamePhase.Gameplay);
   };
