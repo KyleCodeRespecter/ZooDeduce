@@ -17,23 +17,19 @@ export const OpponentViewport: React.FC<OpponentViewportProps> = ({
         isEliminated ? 'eliminated' : ''
       }`}
     >
-      {/* Header / Metadata Area */}
       <div className="opponent-meta">
         <h4 className="opponent-name">{name}</h4>
 
-        {/* Status Badges: Strong importance applied to critical game-state alerts */}
         {isProtected && <span className="shield-badge">🛡️ Protected</span>}
         {isEliminated && (
           <strong className="eliminated-badge">💀 Eliminated</strong>
         )}
 
-        {/* Card Count Indicator */}
         <div className="card-count-indicator">
           <span>Cards in Hand:</span> <strong>{hand.length}</strong>
         </div>
       </div>
 
-      {/* Deductive Core: Public Discard History */}
       <div className="opponent-history">
         <UserDiscardField discardPile={discardPile} />
       </div>
