@@ -113,13 +113,17 @@ export function handleCardPlayPipeline(
     return evaluatedState; // Do not advance turns if the game is over.
   }
 
-  //this request signals an overlay if the player who initiated was human
   if (evaluatedState.targetPeekRequest !== null) {
     const currentActivePlayer = getActivePlayer(evaluatedState);
 
     if (currentActivePlayer.isBot) {
-      return handlePeekTurn(evaluatedState);
+
+      evaluatedState.targetPeekRequest = null;
+      advanceTurnRotation(evaluatedState);
+      return evaluatedState;
     }
+
+    // Freeze turn advancement here so the user can look at the UI Overlay
     return evaluatedState;
   }
 
@@ -251,6 +255,8 @@ function executeFizzleResolution(
 
   activePlayer.hand.splice(cardIndex, 1);
   activePlayer.discardPile.push(playedCard.type);
+  state.activeTargetRequest = null;
+  state.targetPeekRequest = null;
   advanceTurnRotation(state);
 
   return state;
@@ -311,42 +317,68 @@ function resolvePeacockEffect(state: GameStateSnapshot): void {
       activePlayer.discardPile.push(card.type);
     }
   }
-  gameLogger.log(
-    `[EFFECT]: ${activePlayer.name} was forced to trigger Peacock suicide elimination.`,
-  );
 }
 
 /**
- * Reveals an unprotected target's card parameters to the player.
+ * Reveals an unprotected target's card to the player.
+ * Sets the context to display a card viewing overlay
  */
 function resolveOwlEffect(state: GameStateSnapshot, targetId: string | null): void {
   if (!targetId) return;
 
-  const activePlayer = getActivePlayer(state);
   const targetOpponent = state.players.find(p => p.id === targetId);
-
   if (targetOpponent) {
-    gameLogger.log(
-      `[EFFECT]: ${activePlayer.name} utilized Owl to peek at ${targetOpponent.name}.`,
-    );
     state.targetPeekRequest = targetId;
   }
 }
 
 /**
- * Forces a target choice execution route to discard their active card layout.
+ * Forces the target player to dump their hand to discards and draw a fresh replacement card.
+ * Falls back to drawing from the burned cards pool if the main draw pile is completely exhausted.
+ * Discarding peacock is an instant elimination.
  */
 function resolveRhinoEffect(state: GameStateSnapshot, targetId: string | null): void {
-  if (!targetId) return;
-
-  const activePlayer = getActivePlayer(state);
   const targetPlayer = state.players.find(p => p.id === targetId);
 
-  if (targetPlayer) {
-    console.log(`[EFFECT]: ${activePlayer.name} targeted ${targetPlayer.name} with Rhino.`);
-    // Future Note: Implement specific discard/draw replacement mechanics here
+  if (!targetPlayer || targetPlayer.isEliminated) return;
+
+  let wasPeacockDiscarded = false;
+  while (targetPlayer.hand.length > 0) {
+    const card = targetPlayer.hand.pop();
+    if (card) {
+      targetPlayer.discardPile.push(card.type);
+      if (card.type === CardType.Peacock) {
+        wasPeacockDiscarded = true;
+      }
+    }
+  }
+
+  //if peacock was removed, target is instantly eliminated
+  if (wasPeacockDiscarded) {
+    targetPlayer.isEliminated = true;
+    return;
+  }
+
+  if (state.deck.length > 0) {
+    // Pull from the main deck
+    const resultCardData = drawCard(state.deck);
+    targetPlayer.hand.push(resultCardData.drawnCard);
+    state.deck = resultCardData.remainingDeck;
+  } else if (state.burnedCards.length > 0) {
+    // Draw the first card from the burned pool
+    const burnedCardsCopy = [...state.burnedCards];
+    const fallbackCard = burnedCardsCopy.shift();
+
+    if (fallbackCard) {
+      targetPlayer.hand.push(fallbackCard);
+      state.burnedCards = burnedCardsCopy;
+    }
+  } else {
+    //should not happen
+    gameLogger.log(`Both main deck and burned pool are completely dry. ${targetPlayer.name} cannot draw any cards.`);
   }
 }
+
 
 
 function executeCardEffectRules(
