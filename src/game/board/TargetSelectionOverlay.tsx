@@ -90,7 +90,6 @@ export function TargetSelectionOverlay() {
             onSelectCardType={setSelectedCardType}
             onSubmit={handleGuessSubmit}
             allPublicDiscards={allPublicDiscards}
-            burnedCards={gameState.burnedCards}
           />
         </div>
       </div>

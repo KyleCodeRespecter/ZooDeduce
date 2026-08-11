@@ -1,4 +1,4 @@
-import { CardData, CardType } from '../../types/game.types.ts';
+import { CardData, CardType , TOTAL_CARD_DISTRIBUTION} from '../../types/game.types.ts';
 
 export function createFreshDeck(): CardData[] {
 
@@ -9,17 +9,7 @@ export function createFreshDeck(): CardData[] {
     CardType.Peacock,
   ];
   // Map out the quantity distribution rules for a standard deck
-  const deckDistribution: Record<CardType, number> = {
-    [CardType.Peacock]: 1,
-    [CardType.Tiger]: 1,
-    [CardType.Lion]: 1,
-    [CardType.Beaver]: 2,
-    [CardType.Rhino]: 2,
-    [CardType.Chameleon]: 2,
-    [CardType.StagBeetle]: 2,
-    [CardType.Owl]: 2,
-    [CardType.Meerkat]: 6,
-  };
+  const deckDistribution: Record<CardType, number> = TOTAL_CARD_DISTRIBUTION;
 
   const deck: CardData[] = [];
 

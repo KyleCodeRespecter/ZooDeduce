@@ -51,8 +51,21 @@ export interface GameStateSnapshot {
   currentPlayerIndex: number;
   winnerId: string;
   activeTargetRequest: TargetRequest | null;
-  targetPeekRequest:  string | null;
+  targetPeekRequest: string | null;
+  botMemories: Record<string, Record<string, CardType>>;
 }
+
+export const TOTAL_CARD_DISTRIBUTION: Record<CardType, number> = {
+  [CardType.Peacock]: 1,
+  [CardType.Tiger]: 1,
+  [CardType.Lion]: 1,
+  [CardType.Beaver]: 2,
+  [CardType.Rhino]: 2,
+  [CardType.Chameleon]: 2,
+  [CardType.StagBeetle]: 2,
+  [CardType.Owl]: 2,
+  [CardType.Meerkat]: 6,
+} as const;
 
 export const CARD_RULES_REGISTRY: Record<CardType, { title: string; description: string }> = {
 [CardType.Peacock]: {

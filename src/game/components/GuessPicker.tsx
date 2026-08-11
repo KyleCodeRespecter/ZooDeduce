@@ -1,5 +1,5 @@
 import React from 'react';
-import { CardType } from '../../types/game.types';
+import { CardType, TOTAL_CARD_DISTRIBUTION } from '../../types/game.types';
 
 interface GuessPickerProps {
   targetName: string;
@@ -20,17 +20,7 @@ export function GuessPicker({
   allPublicDiscards,
 }: GuessPickerProps) {
   // Rule matrix matching your createFreshDeck totals
-  const totalCardCounts: Record<CardType, number> = {
-    [CardType.Peacock]: 1,
-    [CardType.Tiger]: 1,
-    [CardType.Lion]: 1,
-    [CardType.Beaver]: 2,
-    [CardType.Rhino]: 2,
-    [CardType.Chameleon]: 2,
-    [CardType.StagBeetle]: 2,
-    [CardType.Owl]: 2,
-    [CardType.Meerkat]: 6,
-  };
+  const totalCardCounts: Record<CardType, number> = TOTAL_CARD_DISTRIBUTION;
 
   return (
     <>

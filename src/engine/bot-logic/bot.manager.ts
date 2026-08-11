@@ -2,9 +2,54 @@ import {
   GameStateSnapshot,
   PlayerData,
   CardData,
-  CardType,
+  CardType, TOTAL_CARD_DISTRIBUTION
 } from '../../types/game.types';
 import { isTigerCardPlayMandatory } from '../game.manager.ts';
+
+export interface BotMemorySnapshot {
+  knownOpponentHands: Record<string, CardType>;
+}
+
+export function calculateSmartBotGuess(
+  state: GameStateSnapshot,
+  botPlayer: PlayerData,
+  targetOpponentId: string,
+  botMemory?: BotMemorySnapshot,
+): CardType {
+  // Isolate the targeted player data node
+  const targetPlayer = state.players.find((p) => p.id === targetOpponentId);
+  if (!targetPlayer || targetPlayer.isEliminated || targetPlayer.isProtected) {
+    // Failsafe: Default to standard random fallback if target is illegal
+    return getWeightedRandomGuess(state);
+  }
+
+  // Compile all visible public discards currently sitting on the table
+  const allPublicDiscards = state.players.flatMap((p) => p.discardPile);
+
+  if (
+    botMemory &&
+    botMemory.knownOpponentHands[targetOpponentId] !== undefined
+  ) {
+    const rememberedCard = botMemory.knownOpponentHands[targetOpponentId];
+
+    // Check if the target has personally discarded this card since the bot saw it.
+    // In a 1-card hand game, discarding it means it is no longer in their hand!
+    const targetHasPlayedIt = targetPlayer.discardPile.includes(rememberedCard);
+
+    // Double check that the card hasn't been completely exhausted globally
+    const globalDiscardCount = allPublicDiscards.filter(
+      (type) => type === rememberedCard,
+    ).length;
+    const maxAllowed = TOTAL_CARD_DISTRIBUTION[rememberedCard];
+
+    if (!targetHasPlayedIt && globalDiscardCount < maxAllowed) {
+      // If the remembered card is a massive high-value threat (like Lion or Peacock),
+      // the bot locks onto it immediately to secure an impactful elimination!
+      return rememberedCard;
+    }
+  }
+  return getWeightedRandomGuess(state);
+}
 
 /**
  * Evaluates a bot's current hand and returns the optimal card ID to play.
@@ -69,4 +114,71 @@ export function selectOptimalBotTarget(
   // Pick a random opponent from the pre-filtered safe list
   const randomIndex = Math.floor(Math.random() * validTargetIds.length);
   return validTargetIds[randomIndex];
+}
+
+/**
+ * Smart deduction sweep that updates bot memories when a player plays a card.
+ * If a player plays a card that a bot was remembering, the bot evaluates if it's
+ * mathematically possible for them to still hold a duplicate of that exact card.
+ */
+export function auditBotMemoriesOnCardPlay(state: GameStateSnapshot, playerWhoPlayed: PlayerData, playedCardType: CardType): void {
+  const allPublicDiscards = state.players.flatMap((p) => p.discardPile);
+
+  // Look at total copies allowed for this card type from your global dictionary registry
+  const maxAllowedCopies = TOTAL_CARD_DISTRIBUTION[playedCardType];
+  const totalDiscardedPublicly = allPublicDiscards.filter(type => type === playedCardType).length;
+
+  // Check how many copies are sitting hidden in the deck or secret burn pile
+  const missingUnseenCopies = maxAllowedCopies - totalDiscardedPublicly;
+
+  const safeBotMemories = state.botMemories || {};
+  // Sweep through every bot's brain log registers
+  Object.keys(safeBotMemories).forEach((botId) => {
+    const botMemory = state.botMemories[botId];
+
+    // Check if this specific bot was tracking the playing player's hand
+    if (botMemory[playerWhoPlayed.id] !== undefined) {
+      const cardBotRemembered = botMemory[playerWhoPlayed.id];
+
+      // Condition: The player just played the card the bot was remembering
+      if (cardBotRemembered === playedCardType) {
+        if (missingUnseenCopies !== 0) {
+          delete state.botMemories[botId][playerWhoPlayed.id];
+        }
+      }
+    }
+  });
+}
+
+
+/**
+ * Generates a statistically weighted guess based on remaining card pool distribution.
+ */
+function getWeightedRandomGuess(state: GameStateSnapshot): CardType {
+  const allPublicDiscards = state.players.flatMap((p) => p.discardPile);
+
+  // Base legal options (Excluding Meerkat itself)
+  const baseGuessOptions = Object.keys(CardType)
+    .map((key) => Number(key))
+    .filter((value) => !isNaN(value) && value !== CardType.Meerkat);
+
+  const weightedPool: CardType[] = [];
+
+  baseGuessOptions.forEach((typeCode) => {
+    const cardType = typeCode as CardType;
+    const discardCount = allPublicDiscards.filter(type => type === cardType).length;
+    const maxAllowed = TOTAL_CARD_DISTRIBUTION[cardType];
+
+    const remainingCopies = maxAllowed - discardCount;
+
+    for (let i = 0; i < remainingCopies; i++) {
+      weightedPool.push(cardType);
+    }
+  });
+
+  if (weightedPool.length > 0) {
+    return weightedPool[Math.floor(Math.random() * weightedPool.length)];
+  }
+
+  return CardType.Owl; // Absolute fallback default
 }

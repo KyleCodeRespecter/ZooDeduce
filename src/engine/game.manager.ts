@@ -1,8 +1,15 @@
 import { createFreshDeck, drawCard, shuffleDeck } from './utils/deck.utils.ts';
 import { createPlayer, dealStartingHands } from './utils/player.utils.ts';
-import { CardData, CardType, GameStateSnapshot, PlayerConfig, PlayerData } from '../types/game.types';
+import {
+  CardData,
+  CardType,
+  GameStateSnapshot,
+  PlayerConfig,
+  PlayerData,
+  TOTAL_CARD_DISTRIBUTION
+} from '../types/game.types';
 import { gameLogger } from '../ultils/logger/logger.ts';
-import { selectOptimalBotTarget } from './bot-logic/bot.manager.ts';
+import { auditBotMemoriesOnCardPlay, selectOptimalBotTarget } from './bot-logic/bot.manager.ts';
 
 /**
  * Initializes a new match snapshot, burning initial seed cards and dealing hands.
@@ -39,6 +46,7 @@ export function initializeMatch(
     winnerId: '',
     activeTargetRequest: null,
     targetPeekRequest: null,
+    botMemories: {}
   };
 }
 
@@ -49,7 +57,7 @@ export function handleCardPlayPipeline(
   currentSnapshot: GameStateSnapshot,
   cardId: string,
   explicitTargetId: string | null = null,
-  explicitGuess: CardType | null = null
+  explicitGuess: CardType | null = null,
 ): GameStateSnapshot {
   const nextState = cloneSnapshot(currentSnapshot);
   const activePlayer = getActivePlayer(nextState);
@@ -77,6 +85,18 @@ export function handleCardPlayPipeline(
         playedCard,
       );
     }
+    // condition if meerkat cannot guess anything
+    if (
+      playedCard.type === CardType.Meerkat &&
+      isMeerkatGuessPoolExhausted(nextState)
+    ) {
+      return executeFizzleResolution(
+        nextState,
+        activePlayer,
+        cardIndex,
+        playedCard,
+      );
+    }
 
     // Assess if the engine can auto-bypass selection menus (1-on-1 or Bots)
     if (shouldBypassTargeting(validTargetIds, playedCard, activePlayer.isBot)) {
@@ -87,7 +107,7 @@ export function handleCardPlayPipeline(
           validTargetIds,
           playedCard,
         );
-        finalGuess = CardType.Owl;// placeholder
+        finalGuess = CardType.Owl; // placeholder
       } else {
         finalTargetId = validTargetIds[0]; // Human auto-bypass selects the lone target
       }
@@ -104,6 +124,9 @@ export function handleCardPlayPipeline(
   activePlayer.hand.splice(cardIndex, 1);
   activePlayer.discardPile.push(playedCard.type);
   nextState.activeTargetRequest = null;
+
+  // Run the memory audit before executing effect rules, capturing the exact state of the board
+  auditBotMemoriesOnCardPlay(nextState, activePlayer, playedCard.type);
 
   if (finalTargetId || !playedCard.requiresTarget) {
     executeCardEffectRules(nextState, playedCard, finalTargetId, finalGuess);
@@ -345,9 +368,18 @@ function resolveOwlEffect(
 ): void {
   if (!targetId) return;
 
+  const activePlayer = getActivePlayer(state);
   const targetOpponent = state.players.find((p) => p.id === targetId);
-  if (targetOpponent) {
-    state.targetPeekRequest = targetId;
+
+  if (!targetOpponent || targetOpponent.hand.length === 0) return;
+
+  state.targetPeekRequest = targetId;
+
+  if (activePlayer.isBot) {
+    if (!state.botMemories[activePlayer.id]) {
+      state.botMemories[activePlayer.id] = {};
+    }
+    state.botMemories[activePlayer.id][targetId] = targetOpponent.hand[0].type;
   }
 }
 
@@ -407,19 +439,38 @@ function resolveLionEffect(
   state: GameStateSnapshot,
   targetId: string | null,
 ): void {
-  if (!targetId) {
-    return;
-  }
+  if (!targetId) return;
 
   const activePlayer = getActivePlayer(state);
   const targetPlayer = state.players.find((p) => p.id === targetId);
 
-  if (!targetPlayer || targetPlayer.isEliminated) return;
+  if (
+    !targetPlayer ||
+    targetPlayer.isEliminated ||
+    targetPlayer.hand.length === 0 ||
+    activePlayer.hand.length === 0
+  )
+    return;
 
-  // Swap hands
+  const cardActivePlayerIsGivingAway = activePlayer.hand[0].type;
+  const cardTargetPlayerIsGivingAway = targetPlayer.hand[0].type;
+
   const activePlayerHandCopy = [...activePlayer.hand];
   activePlayer.hand = [...targetPlayer.hand];
   targetPlayer.hand = activePlayerHandCopy;
+
+  if (activePlayer.isBot) {
+    if (!state.botMemories[activePlayer.id]) {
+      state.botMemories[activePlayer.id] = {};
+    }
+    state.botMemories[activePlayer.id][targetId] = cardActivePlayerIsGivingAway;
+  }
+  if (targetPlayer.isBot) {
+    if (!state.botMemories[targetPlayer.id])
+      state.botMemories[targetPlayer.id] = {};
+    state.botMemories[targetPlayer.id][activePlayer.id] =
+      cardTargetPlayerIsGivingAway;
+  }
 }
 
 function resolveMeerkatEffect(state: GameStateSnapshot, targetId: string, guess: CardType): void {
@@ -476,4 +527,26 @@ function executeCardEffectRules(
       }
       break;
   }
+}
+
+/**
+ * Audits the public discard logs to verify if a Meerkat card has any legal options left to guess.
+ * Returns true if every single non-Meerkat card instance has already been revealed face-up.
+ */
+function isMeerkatGuessPoolExhausted(state: GameStateSnapshot): boolean {
+  const allPublicDiscards = state.players.flatMap((p) => p.discardPile);
+
+  // Filter out the reverse-mapped text keys and exclude Meerkat itself from the options array
+  const baseGuessOptions = Object.keys(CardType)
+    .map((key) => Number(key))
+    .filter((value) => !isNaN(value) && value !== CardType.Meerkat);
+
+  // If even a single copy of any valid card type remains hidden, the pool is NOT exhausted
+  const hasLegalGuessesRemaining = baseGuessOptions.some((typeCode) => {
+    const discardCount = allPublicDiscards.filter(type => type === typeCode).length;
+    const maxAllowed = TOTAL_CARD_DISTRIBUTION[typeCode as CardType];
+    return discardCount < maxAllowed;
+  });
+
+  return !hasLegalGuessesRemaining;
 }
