@@ -71,7 +71,6 @@
     transform: scale(0.98);
 }
 
-/* Radio Form Layout Elements */
 .guess-radio-form {
     display: flex;
     flex-direction: column;
@@ -81,7 +80,7 @@
 
 .radio-options-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr); /* Clean 2-column uniform configuration grid */
+    grid-template-columns: repeat(2, 1fr);
     gap: 0.75rem;
     max-height: 250px;
     overflow-y: auto;
@@ -118,7 +117,6 @@
     color: #ffffff;
 }
 
-/* Hide native standard round radio check tags for a sleek custom dashboard look */
 .hidden-radio-input {
     position: absolute;
     opacity: 0;

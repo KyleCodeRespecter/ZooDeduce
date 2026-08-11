@@ -66,7 +66,7 @@ export function GuessPicker({
                   className="hidden-radio-input"
                 />
                 <span className="radio-card-text">
-                  {CardType[typeCode]} {isOptionExhausted && '(All Seen)'}
+                  {CardType[typeCode]}
                 </span>
               </label>
             );
