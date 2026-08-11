@@ -247,9 +247,11 @@ function shouldBypassTargeting(
 
   const isRhino = playedCard.type === CardType.Rhino;
   const hasLoneTarget = validTargetIds.length === 1;
+  const isMeerkat = playedCard.type === CardType.Meerkat;
 
   // Humans auto-bypass if only 1 target choice exists, unless it's a Rhino card
-  return hasLoneTarget && !isRhino;
+  // or meerkat. Meerkat will always need to guess
+  return hasLoneTarget && !isRhino && !isMeerkat;
 }
 
 /**

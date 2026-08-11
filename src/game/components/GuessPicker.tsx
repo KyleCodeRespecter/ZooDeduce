@@ -9,7 +9,6 @@ interface GuessPickerProps {
   onSubmit: (e: React.SubmitEvent<HTMLFormElement>) => void;
   // Passing the collective histories to audit card availability counts
   allPublicDiscards: CardType[];
-  burnedCards: any[];
 }
 
 export function GuessPicker({
@@ -19,7 +18,6 @@ export function GuessPicker({
   onSelectCardType,
   onSubmit,
   allPublicDiscards,
-  burnedCards,
 }: GuessPickerProps) {
   // Rule matrix matching your createFreshDeck totals
   const totalCardCounts: Record<CardType, number> = {
@@ -49,16 +47,9 @@ export function GuessPicker({
             const discardCount = allPublicDiscards.filter(
               (type) => type === typeCode,
             ).length;
-            // Count copies sitting visible inside the public burned card array tracks
-            const burnCount = burnedCards.filter(
-              (card) => card.type === typeCode,
-            ).length;
-
-            const totalSeen = discardCount + burnCount;
             const maxAllowed = totalCardCounts[typeCode as CardType] || 0;
 
-            // 🔥 BONUS OBJECTIVE: If all copies are seen, it's an impossible choice! Disable it!
-            const isOptionExhausted = totalSeen >= maxAllowed;
+            const isOptionExhausted = discardCount >= maxAllowed;
 
             return (
               <label

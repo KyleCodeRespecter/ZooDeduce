@@ -22,6 +22,8 @@ export function TargetSelectionOverlay() {
   const cardName = playedCard ? CardType[playedCard.type] : 'Card';
   const cardDescription = playedCard ? getCardDescription(playedCard.type) : '';
 
+  const isNotRhino = playedCard?.type !== CardType.Rhino;
+
   const validOpponents = gameState.players.filter((opponent) =>
     request?.validTargetIds.includes(opponent.id),
   );
@@ -34,24 +36,26 @@ export function TargetSelectionOverlay() {
 
   // 1v1 Auto-Selection Guard
   useEffect(() => {
-    if (!request || !playedCard || !targetIdsSignature) return;
+    // 1. Safe boundary safeguards
+    if (!request || !targetIdsSignature || !request.validTargetIds) return;
 
-    const hasSingleTarget = validOpponents.length === 1;
-    const isNotRhino = playedCard.type !== CardType.Rhino;
+    const targetIdsArray = request.validTargetIds;
+
+    // 2. Mathematically check the array length directly from the stable request packet
+    const hasSingleTarget = targetIdsArray.length === 1;
 
     if (hasSingleTarget && isNotRhino) {
+      // 3. Extract the clean string item node out of index 0 safely
+      const loneOpponentId = targetIdsArray[0];
+
       if (request.requiresGuess) {
-        setSelectedOpponentId(validOpponents[0].id);
+        // Auto-lock the target string safely, bypassing unstable player filtering arrays
+        setSelectedOpponentId(loneOpponentId);
       } else {
-        selectTargetAction(validOpponents[0].id);
+        selectTargetAction(loneOpponentId);
       }
     }
-  }, [
-    targetIdsSignature,
-    playedCard,
-    request?.requiresGuess,
-    selectTargetAction,
-  ]);
+  }, [targetIdsSignature, request, isNotRhino, selectTargetAction]);
 
   if (!request || !gameState) return null;
 
@@ -63,10 +67,14 @@ export function TargetSelectionOverlay() {
       setSelectedCardType(null);
     }
   };
+
   const allPublicDiscards = gameState.players.flatMap((p) => p.discardPile);
 
+  // Check visibility flags using an airtight comparison
   const isShowingGuessForm =
     request.requiresGuess && selectedOpponentId !== null;
+
+  // Safe lookup: Defends against missing player mappings with a standard text fallback
   const targetName =
     gameState.players.find((p) => p.id === selectedOpponentId)?.name ||
     'Opponent';
@@ -89,9 +97,8 @@ export function TargetSelectionOverlay() {
     );
   }
 
-  // Rhino allows for self targeting
-  const isNotRhino = playedCard?.type !== CardType.Rhino;
-  if (validOpponents.length === 1 && isNotRhino) {
+  // Flash protection guard (Only hides standard non-guessing cards in 1v1 matches)
+  if (validOpponents.length === 1 && isNotRhino && !request.requiresGuess) {
     return null;
   }
 
