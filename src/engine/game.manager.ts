@@ -400,6 +400,25 @@ function resolveRhinoEffect(
   }
 }
 
+function resolveLionEffect(
+  state: GameStateSnapshot,
+  targetId: string | null,
+): void {
+  if (!targetId) {
+    return;
+  }
+
+  const activePlayer = getActivePlayer(state);
+  const targetPlayer = state.players.find((p) => p.id === targetId);
+
+  if (!targetPlayer || targetPlayer.isEliminated) return;
+
+  // Swap hands
+  const activePlayerHandCopy = [...activePlayer.hand];
+  activePlayer.hand = [...targetPlayer.hand];
+  targetPlayer.hand = activePlayerHandCopy;
+}
+
 function executeCardEffectRules(
   state: GameStateSnapshot,
   playedCard: CardData,
@@ -420,6 +439,10 @@ function executeCardEffectRules(
 
     case CardType.Rhino:
       resolveRhinoEffect(state, targetId);
+      break;
+
+    case CardType.Lion:
+      resolveLionEffect(state, targetId);
       break;
   }
 }
