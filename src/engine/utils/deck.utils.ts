@@ -27,12 +27,12 @@ export function createFreshDeck(): CardData[] {
   // Note: Object.entries turns enums into string/number arrays we can loop over
   Object.entries(deckDistribution).forEach(([typeString, quantity]) => {
     const cardType = Number(typeString) as CardType;
-    const targetedCard = !NON_TARGET_REQUIRED_CARDS.includes(cardType);
+    const isTargetedCard = !NON_TARGET_REQUIRED_CARDS.includes(cardType);
     for (let i = 0; i < quantity; i++) {
       deck.push({
         id: crypto.randomUUID(),
         type: cardType,
-        requiresTarget: targetedCard,
+        requiresTarget: isTargetedCard,
       });
     }
   });

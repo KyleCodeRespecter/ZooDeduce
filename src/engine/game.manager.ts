@@ -1,12 +1,6 @@
-import { createFreshDeck, shuffleDeck, drawCard } from './utils/deck.utils.ts';
+import { createFreshDeck, drawCard, shuffleDeck } from './utils/deck.utils.ts';
 import { createPlayer, dealStartingHands } from './utils/player.utils.ts';
-import {
-  GameStateSnapshot,
-  CardData,
-  PlayerConfig,
-  PlayerData,
-  CardType,
-} from '../types/game.types';
+import { CardData, CardType, GameStateSnapshot, PlayerConfig, PlayerData } from '../types/game.types';
 import { gameLogger } from '../ultils/logger/logger.ts';
 import { selectOptimalBotTarget } from './bot-logic/bot.manager.ts';
 
@@ -55,6 +49,7 @@ export function handleCardPlayPipeline(
   currentSnapshot: GameStateSnapshot,
   cardId: string,
   explicitTargetId: string | null = null,
+  explicitGuess: CardType | null = null
 ): GameStateSnapshot {
   const nextState = cloneSnapshot(currentSnapshot);
   const activePlayer = getActivePlayer(nextState);
@@ -65,6 +60,7 @@ export function handleCardPlayPipeline(
   const playedCard = activePlayer.hand[cardIndex];
 
   let finalTargetId = explicitTargetId;
+  let finalGuess = explicitGuess;
 
   if (playedCard.requiresTarget && !finalTargetId) {
     const validTargetIds = filterValidTargets(
@@ -91,11 +87,16 @@ export function handleCardPlayPipeline(
           validTargetIds,
           playedCard,
         );
+        finalGuess = CardType.Owl;// placeholder
       } else {
         finalTargetId = validTargetIds[0]; // Human auto-bypass selects the lone target
       }
     } else {
-      nextState.activeTargetRequest = { cardId, validTargetIds };
+      nextState.activeTargetRequest = {
+        cardId,
+        validTargetIds,
+        requiresGuess: playedCard.type === CardType.Meerkat,
+      };
       return nextState;
     }
   }
@@ -105,7 +106,7 @@ export function handleCardPlayPipeline(
   nextState.activeTargetRequest = null;
 
   if (finalTargetId || !playedCard.requiresTarget) {
-    executeCardEffectRules(nextState, playedCard, finalTargetId);
+    executeCardEffectRules(nextState, playedCard, finalTargetId, finalGuess);
   }
 
   const evaluatedState = evaluateAndFinalizeMatch(nextState);
@@ -419,10 +420,31 @@ function resolveLionEffect(
   targetPlayer.hand = activePlayerHandCopy;
 }
 
+function resolveMeerkatEffect(state: GameStateSnapshot, targetId: string, guess: CardType): void {
+  const targetPlayer = state.players.find((p) => p.id === targetId);
+  if (!targetPlayer || targetPlayer.isEliminated || !targetPlayer.hand.length) return;
+
+  const targetHeldCardType = targetPlayer.hand[0].type;
+  if (guess == targetHeldCardType) {
+    targetPlayer.isEliminated = true;
+    const guessedCard = targetPlayer.hand.pop();
+    if (guessedCard){
+      targetPlayer.discardPile.push(guessedCard.type);
+    }
+    }
+  else {
+    gameLogger.log(
+      `Guess incorrect. ${targetPlayer.name} does not hold ${CardType[guess]}.`,
+    );
+  }
+
+}
+
 function executeCardEffectRules(
   state: GameStateSnapshot,
   playedCard: CardData,
   targetId: string | null,
+  guess: CardType | null,
 ): void {
   switch (playedCard.type) {
     case CardType.Chameleon:
@@ -443,6 +465,13 @@ function executeCardEffectRules(
 
     case CardType.Lion:
       resolveLionEffect(state, targetId);
+      break;
+
+    case CardType.Meerkat:
+      if (targetId && guess !== null)
+      {
+        resolveMeerkatEffect(state, targetId, guess);
+      }
       break;
   }
 }

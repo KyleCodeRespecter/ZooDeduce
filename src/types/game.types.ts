@@ -41,6 +41,7 @@ export interface PlayerConfig {
 export interface TargetRequest {
   cardId: string;
   validTargetIds: string[];
+  requiresGuess: boolean;
 }
 
 export interface GameStateSnapshot {

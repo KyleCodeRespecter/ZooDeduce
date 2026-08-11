@@ -1,4 +1,4 @@
-import { GamePhase, GameStateSnapshot } from '../types/game.types.ts';
+import { CardType, GamePhase, GameStateSnapshot } from '../types/game.types.ts';
 import { createContext, useContext } from 'react';
 
 interface GameContextType {
@@ -6,7 +6,11 @@ interface GameContextType {
   gamePhase: GamePhase;
   setGamePhase: (gamePhase: GamePhase) => void;
   selectTargetAction: (targetPlayerId: string) => void;
-  playCardAction: (cardID: string) => void;
+  playCardAction: (
+    cardId: string,
+    selectedTargetId?: string | null,
+    declaredGuessValue?: CardType | null
+  ) => void;
   startGame: (opponentCount: number) => void;
   endGame: () => void;
   dismissPeekAction: () => void;

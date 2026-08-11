@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { GameEngineContext } from './game.engine.context.ts';
-import { GamePhase, GameStateSnapshot, PlayerConfig} from '../types/game.types.ts';
+import { CardType, GamePhase, GameStateSnapshot, PlayerConfig } from '../types/game.types.ts';
 import {
   handleCardPlayPipeline, handlePeekTurn,
   handleStartTurn,
@@ -28,37 +28,49 @@ export function GameEngineProvider({
   const playCardAction = (
     cardId: string,
     selectedTargetId: string | null = null,
+    declaredGuessValue: CardType | null = null,
   ) => {
     if (!gameState) return;
-    const activePlayer = gameState.players[gameState.currentPlayerIndex];
+
+    const activePlayer = gameState.players?.[gameState.currentPlayerIndex];
 
     const stateAfterPlay = handleCardPlayPipeline(
       gameState,
       cardId,
       selectedTargetId,
+      declaredGuessValue,
     );
 
+    // handle target requests
     if (
       stateAfterPlay.activeTargetRequest !== null ||
       stateAfterPlay.targetPeekRequest !== null
     ) {
       setGameState(stateAfterPlay);
-      return;
+      return; // Safe freeze. Awaits overlay menu selections.
     }
 
+    // start turn for next player
     const finalizedSnapshot = handleStartTurn(stateAfterPlay);
-
     setGameState(finalizedSnapshot);
-    gameLogger.logPlayerAction(
-      activePlayer.name,
-      `triggered a card resolution pipeline for instance ID: ${cardId}. Target: ${selectedTargetId ?? 'auto/none'}`,
-    );
+
+    if (activePlayer && gameLogger) {
+      gameLogger.logPlayerAction(
+        activePlayer.name,
+        `resolved card pipeline for instance ID: ${cardId}. Target: ${selectedTargetId ?? 'auto/none'}`,
+      );
+    }
   };
+
 
   const selectTargetAction = (targetPlayerId: string) => {
     if (!gameState?.activeTargetRequest) return;
 
-    playCardAction(gameState.activeTargetRequest.cardId, targetPlayerId);
+    const request = gameState.activeTargetRequest;
+    
+    if (!request.requiresGuess) {
+      playCardAction(request.cardId, targetPlayerId, null);
+    }
   };
 
   const startGame = (opponentCount: number) => {
