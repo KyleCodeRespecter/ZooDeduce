@@ -44,7 +44,7 @@ export function initializeMatch(
     currentPlayerIndex: 0,
     winnerId: '',
     activeTargetRequest: null,
-    targetPeekRequest: null
+    targetPeekRequest: null,
   };
 }
 
@@ -117,7 +117,6 @@ export function handleCardPlayPipeline(
     const currentActivePlayer = getActivePlayer(evaluatedState);
 
     if (currentActivePlayer.isBot) {
-
       evaluatedState.targetPeekRequest = null;
       advanceTurnRotation(evaluatedState);
       return evaluatedState;
@@ -171,9 +170,21 @@ export function handlePeekTurn(currentSnapshot: GameStateSnapshot) {
   const nextState = cloneSnapshot(currentSnapshot);
 
   nextState.targetPeekRequest = null;
-  nextState.currentPlayerIndex = (nextState.currentPlayerIndex + 1) % nextState.players.length;
+  nextState.currentPlayerIndex =
+    (nextState.currentPlayerIndex + 1) % nextState.players.length;
 
   return handleStartTurn(nextState);
+}
+
+export function isTigerCardPlayMandatory(playerHand: CardData[]): boolean {
+  if (!playerHand || playerHand.length < 2) return false;
+
+  const hasTiger = playerHand.some((card) => card.type === CardType.Tiger);
+  const hasConditionalCard = playerHand.some(
+    (card) => card.type === CardType.Rhino || card.type === CardType.Lion,
+  );
+
+  return hasTiger && hasConditionalCard;
 }
 
 /**
@@ -301,7 +312,9 @@ function evaluateAndFinalizeMatch(state: GameStateSnapshot): GameStateSnapshot {
 function resolveChameleonEffect(state: GameStateSnapshot): void {
   const activePlayer = getActivePlayer(state);
   activePlayer.isProtected = true;
-  gameLogger.log(`[EFFECT]: ${activePlayer.name} deployed Chameleon protection.`);
+  gameLogger.log(
+    `[EFFECT]: ${activePlayer.name} deployed Chameleon protection.`,
+  );
 }
 
 /**
@@ -323,10 +336,13 @@ function resolvePeacockEffect(state: GameStateSnapshot): void {
  * Reveals an unprotected target's card to the player.
  * Sets the context to display a card viewing overlay
  */
-function resolveOwlEffect(state: GameStateSnapshot, targetId: string | null): void {
+function resolveOwlEffect(
+  state: GameStateSnapshot,
+  targetId: string | null,
+): void {
   if (!targetId) return;
 
-  const targetOpponent = state.players.find(p => p.id === targetId);
+  const targetOpponent = state.players.find((p) => p.id === targetId);
   if (targetOpponent) {
     state.targetPeekRequest = targetId;
   }
@@ -337,8 +353,11 @@ function resolveOwlEffect(state: GameStateSnapshot, targetId: string | null): vo
  * Falls back to drawing from the burned cards pool if the main draw pile is completely exhausted.
  * Discarding peacock is an instant elimination.
  */
-function resolveRhinoEffect(state: GameStateSnapshot, targetId: string | null): void {
-  const targetPlayer = state.players.find(p => p.id === targetId);
+function resolveRhinoEffect(
+  state: GameStateSnapshot,
+  targetId: string | null,
+): void {
+  const targetPlayer = state.players.find((p) => p.id === targetId);
 
   if (!targetPlayer || targetPlayer.isEliminated) return;
 
@@ -375,16 +394,16 @@ function resolveRhinoEffect(state: GameStateSnapshot, targetId: string | null): 
     }
   } else {
     //should not happen
-    gameLogger.log(`Both main deck and burned pool are completely dry. ${targetPlayer.name} cannot draw any cards.`);
+    gameLogger.log(
+      `Both main deck and burned pool are completely dry. ${targetPlayer.name} cannot draw any cards.`,
+    );
   }
 }
-
-
 
 function executeCardEffectRules(
   state: GameStateSnapshot,
   playedCard: CardData,
-  targetId: string | null
+  targetId: string | null,
 ): void {
   switch (playedCard.type) {
     case CardType.Chameleon:
@@ -404,4 +423,3 @@ function executeCardEffectRules(
       break;
   }
 }
-

@@ -4,6 +4,7 @@ import {
   CardData,
   CardType,
 } from '../../types/game.types';
+import { isTigerCardPlayMandatory } from '../game.manager.ts';
 
 /**
  * Evaluates a bot's current hand and returns the optimal card ID to play.
@@ -17,6 +18,16 @@ export function executeBotCardSelection(botPlayer: PlayerData): string | null {
   // If forced down to 1 card, it must be played
   if (botPlayer.hand.length === 1) {
     return botPlayer.hand[0].id;
+  }
+
+  //must play tiger if the rhino or lion are in hand
+  if (isTigerCardPlayMandatory(botPlayer.hand)) {
+    const tigerCard = botPlayer.hand.find(
+      (card) => card.type === CardType.Tiger,
+    );
+    if (tigerCard) {
+      return tigerCard.id;
+    }
   }
 
   // Filter out the suicidal Peacock card
