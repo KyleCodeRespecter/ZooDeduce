@@ -30,7 +30,6 @@ Make sure you have Node.js installed on your machine.
 
 ## Future Roadmap
 
-- **Phase 1**: Finalize specific card resolution engines (resolveCardMechanic) for cards like the Owl, Beaver, and Rhino.
-- **Phase 2**: Incorporate Favor Tokens currency tracking to persist match victories across multiple rounds.
-- **Phase 3**: Implement native HTML5 Drag and Drop into a designated central Field Mat alongside universal click-to-inspect description popup overlays.
-- **Phase 4**: Add a local multiplayer hot-seat mode utilizing the modular PlayerConfig architecture.
+- Incorporate Favor Tokens currency tracking to persist match victories across multiple rounds.
+- Implement native HTML5 Drag and Drop into a designated central Field Mat alongside universal click-to-inspect description popup overlays.
+- Add a local multiplayer hot-seat mode utilizing the modular PlayerConfig architecture.
