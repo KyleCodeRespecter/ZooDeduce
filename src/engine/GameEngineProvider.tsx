@@ -77,7 +77,8 @@ export function GameEngineProvider({
     if (
       stateAfterPlay.activeTargetRequest !== null ||
       stateAfterPlay.targetPeekRequest !== null ||
-      stateAfterPlay.cardSelectRequest !== null
+      stateAfterPlay.cardSelectRequest !== null ||
+      stateAfterPlay.owlNotice !== null
     ) {
       setGameState(stateAfterPlay);
       return; // Safe freeze. Awaits overlay menu selections.

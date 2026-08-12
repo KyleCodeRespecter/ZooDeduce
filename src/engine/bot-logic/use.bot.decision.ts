@@ -37,7 +37,7 @@ export function useBotBrain({
       return;
     }
 
-    const targetedCardId = executeBotCardSelection(activePlayer);
+    const targetedCardId = executeBotCardSelection(activePlayer, gameState);
     if (!targetedCardId) {
       return;
     }

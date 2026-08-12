@@ -13,80 +13,146 @@ export interface BotMemorySnapshot {
 export function calculateSmartBotGuess(
   state: GameStateSnapshot,
   botPlayer: PlayerData,
-  targetOpponentId: string,
-  botMemory?: BotMemorySnapshot,
+  targetOpponentId: string | null,
 ): CardType {
-  // Isolate the targeted player data node
-  const targetPlayer = state.players.find((p) => p.id === targetOpponentId);
-  if (!targetPlayer || targetPlayer.isEliminated || targetPlayer.isProtected) {
-    // Failsafe: Default to standard random fallback if target is illegal
+  if (!targetOpponentId) {
     return getWeightedRandomGuess(state);
   }
-
-  // Compile all visible public discards currently sitting on the table
+  const targetPlayer = state.players.find((p) => p.id === targetOpponentId);
+  if (!targetPlayer) {
+    return getWeightedRandomGuess(state);
+  }
+  let knownGuess = getBotMemoryForTarget(state, botPlayer.id, targetOpponentId );
   const allPublicDiscards = state.players.flatMap((p) => p.discardPile);
 
-  if (
-    botMemory &&
-    botMemory.knownOpponentHands[targetOpponentId] !== undefined
-  ) {
-    const rememberedCard = botMemory.knownOpponentHands[targetOpponentId];
-
+  //if the bot knows the card, double check that it can still be true
+  if (knownGuess)
+  {
     // Check if the target has personally discarded this card since the bot saw it.
-    // In a 1-card hand game, discarding it means it is no longer in their hand!
-    const targetHasPlayedIt = targetPlayer.discardPile.includes(rememberedCard);
-
+    const targetHasPlayedIt = targetPlayer.discardPile.includes(knownGuess);
     // Double check that the card hasn't been completely exhausted globally
     const globalDiscardCount = allPublicDiscards.filter(
-      (type) => type === rememberedCard,
+      (type) => type === knownGuess,
     ).length;
-    const maxAllowed = TOTAL_CARD_DISTRIBUTION[rememberedCard];
+    const maxAllowed = TOTAL_CARD_DISTRIBUTION[knownGuess];
 
     if (!targetHasPlayedIt && globalDiscardCount < maxAllowed) {
-      // If the remembered card is a massive high-value threat (like Lion or Peacock),
-      // the bot locks onto it immediately to secure an impactful elimination!
-      return rememberedCard;
+      return knownGuess;
     }
   }
+
   return getWeightedRandomGuess(state);
 }
 
 /**
  * Evaluates a bot's current hand and returns the optimal card ID to play.
- * Prioritizes survival by avoiding the Peacock at all costs.
+ * Prioritizes survival, strategic Peacock traps, and mechanical advantages.
+ *
+ * The structure of this could be further enhanced by setting up a structure that
+ * could assign arbitrary point values for potential hand plays
+ * on a scale
+ *
+ * for example:
+ * 0. Suicide
+ *        - playing peacock
+ *        - stag beetle with meerkat in hand
+ *        - playing lion to pass a meerkat to the next player
+ * 1. An unknown play
+ *        - early game meerkat guess with little info
+ * 2. A low level play
+ *        - using stag beetle with another stag beetle or chameleon in hand
+ *        - using a beaver and not picking peacock at late game
+ *        - playing a lion when the bot knows the card of the target is unfavorable
+ * 3. A set up play
+ *        - Owl play
+ *        - Beaver to find a good card
+ *        - chameleon with no knowledge about self
+ * 4. A confident play
+ *        - chameleon when opponent knows hand
+ *        - stag beetle with lion or tiger
+ *        - owl with meerkat in hand
+ *
+ * 5. Confirmed wins
+ *        - stag beetle with peacock in hand
+ *        - rhino targeting opponent with peacock
+ *        - meerkat on known card
+ *
+ * each card option could come back with an arbitrary point and the bot could pick
+ * the higher option, with a chance to select the lower one that greatly increases
+ * the further they are apart, and avoiding 0 values at all cost
  */
-export function executeBotCardSelection(botPlayer: PlayerData): string | null {
-  if (!botPlayer.hand || botPlayer.hand.length === 0) {
-    return null;
-  }
+export function executeBotCardSelection(
+  botPlayer: PlayerData,
+  state: GameStateSnapshot
+): string | null {
+  if (!botPlayer.hand || botPlayer.hand.length === 0) return null;
 
-  // If forced down to 1 card, it must be played
-  if (botPlayer.hand.length === 1) {
-    return botPlayer.hand[0].id;
-  }
+  // if forced down to 1 card, it must be played
+  if (botPlayer.hand.length === 1) return botPlayer.hand[0].id;
 
-  //must play tiger if the rhino or lion are in hand
+  // mandatory tiger play
   if (isTigerCardPlayMandatory(botPlayer.hand)) {
-    const tigerCard = botPlayer.hand.find(
-      (card) => card.type === CardType.Tiger,
-    );
-    if (tigerCard) {
-      return tigerCard.id;
+    const tigerCard = botPlayer.hand.find(card => card.type === CardType.Tiger);
+    if (tigerCard) return tigerCard.id;
+  }
+
+  // if the bot has a stag beetle and a meerkat, they should not play the stag beetle
+  /*
+  * Future considerations:
+  * - if they know their other card is highest value in play, they should play it
+  * - if they know the card of somebody else and can beat it, they should play it
+  * - if the card is low, it is worth checking if the other card may be a better play
+  * */
+  const hasStagBeetle = botPlayer.hand.find(
+    (card) => card.type === CardType.StagBeetle,
+  );
+  const hasMeerkat = botPlayer.hand.find(
+    (card) => card.type === CardType.Meerkat,
+  );
+  if (hasStagBeetle && hasMeerkat)
+  {
+    return hasMeerkat.id;
+  }
+
+  // if the bot know it has the opportunity to make somebody discard a peacock, it should
+  const hasRhino = botPlayer.hand.find(card => card.type === CardType.Rhino);
+  if (hasRhino && state.botMemories && state.botMemories[botPlayer.id]) {
+    const myMemory = state.botMemories[botPlayer.id];
+    const targetPeacockId = Object.entries(myMemory).find(([oppId, cardType]) => {
+      if (cardType !== CardType.Peacock) return false;
+      const opponent = state.players.find(p => p.id === oppId);
+      return opponent && !opponent.isEliminated && !opponent.isProtected;
+    });
+
+    if (targetPeacockId) {
+      return hasRhino.id;
     }
   }
 
-  // Filter out the suicidal Peacock card
-  const survivalPool = botPlayer.hand.filter(
-    (card) => card.type !== CardType.Peacock,
-  );
-
-  if (survivalPool.length > 0) {
-    return survivalPool[0].id; // Play the first safe card available
+  // if the bot can play a meerkat and knows an opponent holds a card that isnt a meerkat, it should play it
+  if (hasMeerkat && state.botMemories && state.botMemories[botPlayer.id]) {
+    const myMemory = state.botMemories[botPlayer.id];
+    const guaranteedKill = Object.entries(myMemory).find(([oppId, cardType]) => {
+      const opponent = state.players.find(p => p.id === oppId);
+      return opponent && !opponent.isEliminated && !opponent.isProtected && cardType !== CardType.Meerkat;
+    });
+    if (guaranteedKill) {
+      return hasMeerkat.id;
+    }
   }
 
-  // If holding two Peacocks, it is forced to drop one. Should never happen
+  // avoid dropping peacock
+  const survivalPool = botPlayer.hand.filter((card) => card.type !== CardType.Peacock);
+
+  if (survivalPool.length > 0) {
+    const randomSafeIndex = Math.trunc(Math.random() * survivalPool.length);
+    return survivalPool[randomSafeIndex].id;
+  }
+
+  // absolute fallback
   return botPlayer.hand[0].id;
 }
+
 
 /**
  * Selects an intelligent target ID for a bot from a pre-filtered list of legal options.
@@ -197,4 +263,27 @@ function getWeightedRandomGuess(state: GameStateSnapshot): CardType {
   }
 
   return CardType.Owl; // Absolute fallback default
+}
+
+function getBotMemoryForTarget(gameState: GameStateSnapshot, botPlayerId: string, targetPlayerId: string): CardType | null
+{
+  let guess = null;
+  if (
+    gameState.botMemories &&
+    Object.keys(gameState.botMemories).length > 0
+  ) {
+
+    Object.entries(gameState.botMemories).forEach(([botId, memories]) => {
+      if (botId === botPlayerId) {
+        Object.entries(memories).forEach(([opponentId, card]) => {
+          if (opponentId === targetPlayerId) {
+            if (card !== null) {
+              guess = card;
+            }
+          }
+        });
+      }
+    });
+  }
+  return guess;
 }
