@@ -1,0 +1,130 @@
+.target-overlay-modal.showdown-modal {
+    max-width: 650px;
+    width: 100%;
+    animation: duelEntrance 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.showdown-arena {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #121212;
+    border: 2px solid #2a2a2a;
+    border-radius: 0.75rem;
+    padding: 2rem;
+    margin: 1rem 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.showdown-arena::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -50%;
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(
+            45deg,
+            transparent 45%,
+            rgba(255, 255, 255, 0.03) 50%,
+            transparent 55%
+    );
+    pointer-events: none;
+}
+
+.showdown-fighter {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    z-index: 1;
+}
+
+.showdown-fighter h4 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #ffffff;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.revealed-card-badge {
+    background-color: #222222;
+    border: 2px solid #444444;
+    border-radius: 0.5rem;
+    padding: 1rem 1.5rem;
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #00cccc;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    min-width: 120px;
+    text-align: center;
+}
+
+.showdown-vs {
+    font-size: 1.5rem;
+    font-weight: 900;
+    font-style: italic;
+    color: #ff4a4a;
+    text-shadow: 0 0 10px rgba(255, 74, 74, 0.4);
+    padding: 0 1.5rem;
+    z-index: 2;
+    transform: skewX(-10deg);
+    animation: vsPulse 1.5s ease-in-out infinite alternate;
+}
+
+.showdown-result-declaration {
+    background-color: rgba(0, 204, 204, 0.05);
+    border-left: 4px solid #00cccc;
+    border-radius: 4px;
+    padding: 1rem;
+    margin: 0.5rem 0;
+}
+
+.showdown-result-declaration.has-elimination {
+    background-color: rgba(255, 74, 74, 0.05);
+    border-left-color: #ff4a4a;
+}
+
+.showdown-result-declaration p {
+    margin: 0;
+    font-size: 1rem;
+    color: #e0e0e0;
+    line-height: 1.4;
+}
+
+.showdown-result-declaration b {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.showdown-modal .target-player-button {
+    width: 100%;
+    margin-top: 0.5rem;
+}
+
+@keyframes duelEntrance {
+    0% {
+        opacity: 0;
+        transform: scale(0.94) translateY(15px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+@keyframes vsPulse {
+    from {
+        transform: skewX(-10deg) scale(0.95);
+        text-shadow: 0 0 8px rgba(255, 74, 74, 0.3);
+    }
+    to {
+        transform: skewX(-10deg) scale(1.1);
+        text-shadow: 0 0 15px rgba(255, 74, 74, 0.6);
+    }
+}

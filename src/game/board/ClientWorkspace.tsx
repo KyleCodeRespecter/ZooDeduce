@@ -19,13 +19,13 @@ export const ClientWorkspace: React.FC<ClientWorkspaceProps> = ({
         <div className="client-info-group">
           <div className="client-title-group">
             <h3>Your Hand</h3>
-            {isCurrentTurn && <span className="turn-badge">⚡ Your Turn!</span>}
           </div>
           <div className="status-badges">
             {isProtected && <span className="shield-badge">🛡️ Protected</span>}
             {isEliminated && (
               <strong className="eliminated-badge">💀 Eliminated</strong>
             )}
+            {isCurrentTurn && <span className="turn-badge">Your Turn!</span>}
           </div>
         </div>
 

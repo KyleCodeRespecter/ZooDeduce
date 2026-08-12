@@ -1,0 +1,70 @@
+.card-view-overlay-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    padding: 2rem;
+}
+
+.card-view-overlay-modal {
+    background-color: #1e1e1e;
+    border: 3px solid #333333;
+    border-radius: 1.25rem;
+    padding: 2.5rem;
+    max-width: 650px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.overlay-view-title {
+    margin: 0;
+    color: #00cccc;
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+.card-view-list {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    padding: 1rem 0;
+}
+
+.card-view-wrapper {
+    flex-shrink: 0;
+}
+
+.overlay-acknowledge-button {
+    padding: 0.85rem 2rem;
+    background-color: #00cccc;
+    color: #121212;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 800;
+    font-size: 1rem;
+    cursor: pointer;
+    align-self: center;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.overlay-acknowledge-button:hover {
+    background-color: #00ffff;
+}
+
+.overlay-acknowledge-button:active {
+    transform: scale(0.97);
+}

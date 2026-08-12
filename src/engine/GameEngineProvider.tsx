@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { GameEngineContext } from './game.engine.context.ts';
-import { GamePhase, GameStateSnapshot, PlayerConfig} from '../types/game.types.ts';
+import { CardType, GamePhase, GameStateSnapshot, PlayerConfig } from '../types/game.types.ts';
 import {
-  handleCardPlayPipeline,
+  handleCardPlayPipeline, handleCardSelectResolution, handlePeekTurn, handleShowdownElimination,
   handleStartTurn,
   initializeMatch
 } from './game.manager.ts';
@@ -19,38 +19,103 @@ export function GameEngineProvider({
   const [gamePhase, setGamePhase] = useState<GamePhase>(GamePhase.MainMenu);
   const [gameState, setGameState] = useState<GameStateSnapshot | null>(null);
 
+  const dismissPeekAction = () => {
+    if (!gameState) return;
+    const nextState = handlePeekTurn(gameState);
+    setGameState(nextState);
+  };
+
+  const dismissShowdownAction = () => {
+    if (!gameState) return;
+
+    let updatedState = handleShowdownElimination(gameState);
+
+    if (updatedState.winnerId) {
+      setGameState(updatedState);
+      return;
+    }
+
+    updatedState.currentPlayerIndex =
+      (updatedState.currentPlayerIndex + 1) % updatedState.players.length;
+
+    const finalizedSnapshot = handleStartTurn(updatedState);
+    setGameState(finalizedSnapshot);
+  };
+
+  const dismissOwlNoticeAction = () => {
+    if (!gameState || !gameState.owlNotice) return;
+
+    let nextState = JSON.parse(JSON.stringify(gameState)) as GameStateSnapshot;
+
+    nextState.owlNotice = null;
+    nextState.targetPeekRequest = null;
+
+    nextState.currentPlayerIndex =
+      (nextState.currentPlayerIndex + 1) % nextState.players.length;
+
+    const finalizedSnapshot = handleStartTurn(nextState);
+    setGameState(finalizedSnapshot);
+  };
+
   const playCardAction = (
     cardId: string,
     selectedTargetId: string | null = null,
+    declaredGuessValue: CardType | null = null,
   ) => {
     if (!gameState) return;
-    const activePlayer = gameState.players[gameState.currentPlayerIndex];
+
+    const activePlayer = gameState.players?.[gameState.currentPlayerIndex];
 
     const stateAfterPlay = handleCardPlayPipeline(
       gameState,
       cardId,
       selectedTargetId,
+      declaredGuessValue,
     );
 
-    if (stateAfterPlay.activeTargetRequest !== null) {
+    // handle UI requests
+    if (
+      stateAfterPlay.activeTargetRequest !== null ||
+      stateAfterPlay.targetPeekRequest !== null ||
+      stateAfterPlay.cardSelectRequest !== null
+    ) {
       setGameState(stateAfterPlay);
-      return;
+      return; // Safe freeze. Awaits overlay menu selections.
     }
 
+    // start turn for next player
     const finalizedSnapshot = handleStartTurn(stateAfterPlay);
-
     setGameState(finalizedSnapshot);
-    gameLogger.logPlayerAction(
-      activePlayer.name,
-      `triggered a card resolution pipeline for instance ID: ${cardId}. Target: ${selectedTargetId ?? 'auto/none'}`,
-    );
+
+    if (activePlayer && gameLogger) {
+      gameLogger.logPlayerAction(
+        activePlayer.name,
+        `resolved card pipeline for instance ID: ${cardId}. Target: ${selectedTargetId ?? 'auto/none'}`,
+      );
+    }
   };
+
 
   const selectTargetAction = (targetPlayerId: string) => {
     if (!gameState?.activeTargetRequest) return;
 
-    playCardAction(gameState.activeTargetRequest.cardId, targetPlayerId);
+    const request = gameState.activeTargetRequest;
+
+    if (!request.requiresGuess) {
+      playCardAction(request.cardId, targetPlayerId, null);
+    }
   };
+
+  const selectHandCardAction = (cardId: string) => {
+    if (!gameState) return;
+
+    let updatedState = handleCardSelectResolution(gameState, cardId);
+
+    const finalizedSnapshot = handleStartTurn(updatedState);
+
+    setGameState(finalizedSnapshot);
+  };
+
 
   const startGame = (opponentCount: number) => {
     const setupConfigs: PlayerConfig[] = [
@@ -97,8 +162,12 @@ export function GameEngineProvider({
         setGamePhase,
         playCardAction,
         selectTargetAction,
+        selectHandCardAction,
         startGame,
         endGame,
+        dismissPeekAction,
+        dismissShowdownAction,
+        dismissOwlNoticeAction
       }}
     >
       {children}

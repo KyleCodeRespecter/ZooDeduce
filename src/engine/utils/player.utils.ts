@@ -1,4 +1,4 @@
-import { PlayerData, CardData, PlayerConfig } from '../../types/game.types.ts';
+import { PlayerData, CardData, PlayerConfig, CardType, GameStateSnapshot } from '../../types/game.types.ts';
 import { drawCard } from './deck.utils.ts';
 
 /**
@@ -15,6 +15,13 @@ export function createPlayer(id: string, config: PlayerConfig): PlayerData {
     isEliminated: false,
     isProtected: false,
   };
+}
+
+/**
+ * Standardizes lookups for whichever player currently holds active execution focus.
+ */
+export function getActivePlayer(state: GameStateSnapshot): PlayerData {
+  return state.players[state.currentPlayerIndex];
 }
 
 /**
@@ -81,4 +88,15 @@ export function setPlayerProtection(
     ...player,
     isProtected,
   };
+}
+
+export function isTigerCardPlayMandatory(playerHand: CardData[]): boolean {
+  if (!playerHand || playerHand.length < 2) return false;
+
+  const hasTiger = playerHand.some((card) => card.type === CardType.Tiger);
+  const hasConditionalCard = playerHand.some(
+    (card) => card.type === CardType.Rhino || card.type === CardType.Lion,
+  );
+
+  return hasTiger && hasConditionalCard;
 }

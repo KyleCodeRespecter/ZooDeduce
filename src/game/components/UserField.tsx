@@ -1,10 +1,14 @@
 
-import { CardData } from '../../types/game.types';
+import { CardData, CardType } from '../../types/game.types';
 import { Card } from './Card.tsx';
 import { UserFieldProps } from '../../types/fields.types.ts';
 import './user.field.css';
+import { isTigerCardPlayMandatory } from '../../engine/utils/player.utils.ts';
 
 export function UserField({ player, isMyTurn, onCardPlayed }: UserFieldProps) {
+
+  const forceTigerPlay = isTigerCardPlayMandatory(player.hand);
+
   return (
     <div
       className={`user-field-zone ${isMyTurn ? 'active-turn' : 'disabled'}`}
@@ -12,14 +16,17 @@ export function UserField({ player, isMyTurn, onCardPlayed }: UserFieldProps) {
       <h3>{player.name}'s Field</h3>
 
       <div className="user-field-cards-container">
-        {player.hand.map((cardItem: CardData) => (
+        {player.hand.map((cardItem: CardData) => {
+          const isThisCardPlayable = isMyTurn && (!forceTigerPlay || cardItem.type === CardType.Tiger);
+          return (
           <Card
             key={cardItem.id}
             card={cardItem}
-            isPlayable={isMyTurn}
+            isPlayable={ isThisCardPlayable }
             onPlay={onCardPlayed}
           />
-        ))}
+          );
+        })}
       </div>
     </div>
   );
