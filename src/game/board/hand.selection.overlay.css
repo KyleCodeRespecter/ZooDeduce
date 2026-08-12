@@ -1,0 +1,102 @@
+.target-overlay-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    padding: 2rem;
+    box-sizing: border-box;
+}
+
+.target-overlay-modal.beaver-modal {
+    background-color: #1e1e1e;
+    border: 3px solid #333333;
+    border-radius: 1.25rem;
+    padding: 2.5rem;
+    max-width: 750px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    animation: beaverModalEntrance 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.target-overlay-title {
+    margin: 0;
+    color: #00cccc;
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+}
+
+.target-overlay-prompt {
+    color: #b3b3b3;
+    font-size: 1rem;
+    line-height: 1.5;
+    margin: 0 auto;
+    max-width: 500px;
+}
+
+.target-overlay-prompt b {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.card-view-list {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    padding: 1.5rem 0 0.5rem 0;
+    width: 100%;
+}
+
+.beaver-choice-card-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    border-radius: 0.75rem;
+    outline: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1),
+    box-shadow 0.2s ease;
+}
+
+.beaver-choice-card-btn:hover {
+    transform: translateY(-8px) scale(1.03);
+    box-shadow: 0 15px 30px rgba(0, 204, 204, 0.25);
+}
+
+.beaver-choice-card-btn:active {
+    transform: translateY(-2px) scale(0.98);
+}
+
+.beaver-choice-card-btn:focus-visible {
+    box-shadow: 0 0 0 3px #00cccc;
+}
+
+@keyframes beaverModalEntrance {
+    from {
+        opacity: 0;
+        transform: scale(0.96) translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}

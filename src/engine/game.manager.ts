@@ -1,5 +1,5 @@
 import { createFreshDeck, drawCard, shuffleDeck } from './utils/deck.utils.ts';
-import { createPlayer, dealStartingHands } from './utils/player.utils.ts';
+import { createPlayer, dealStartingHands, getActivePlayer } from './utils/player.utils.ts';
 import {
   CardData,
   CardType,
@@ -9,7 +9,11 @@ import {
   TOTAL_CARD_DISTRIBUTION
 } from '../types/game.types';
 import { gameLogger } from '../ultils/logger/logger.ts';
-import { auditBotMemoriesOnCardPlay, selectOptimalBotTarget } from './bot-logic/bot.manager.ts';
+import {
+  auditBotMemoriesOnCardPlay,
+  executeBotBeaverSelection,
+  selectOptimalBotTarget
+} from './bot-logic/bot.manager.ts';
 
 /**
  * Initializes a new match snapshot, burning initial seed cards and dealing hands.
@@ -46,6 +50,7 @@ export function initializeMatch(
     winnerId: '',
     activeTargetRequest: null,
     targetPeekRequest: null,
+    cardSelectRequest: null,
     botMemories: {}
   };
 }
@@ -97,6 +102,18 @@ export function handleCardPlayPipeline(
         playedCard,
       );
     }
+    // condition if there are not two cards for the beaver to draw
+    if (playedCard.type === CardType.Beaver &&
+      nextState.deck.length < 2
+    )
+    {
+      return executeFizzleResolution(
+        nextState,
+        activePlayer,
+        cardIndex,
+        playedCard,
+      )
+    }
 
     // Assess if the engine can auto-bypass selection menus (1-on-1 or Bots)
     if (shouldBypassTargeting(validTargetIds, playedCard, activePlayer.isBot)) {
@@ -133,25 +150,40 @@ export function handleCardPlayPipeline(
   }
 
   const evaluatedState = evaluateAndFinalizeMatch(nextState);
-  if (evaluatedState.winnerId) {
-    return evaluatedState; // Do not advance turns if the game is over.
-  }
+  if (evaluatedState.winnerId) return evaluatedState;
 
-  if (evaluatedState.targetPeekRequest !== null) {
+  // checking the evaluated state of the beaver card
+  if (evaluatedState.cardSelectRequest !== null) {
     const currentActivePlayer = getActivePlayer(evaluatedState);
 
+    if (currentActivePlayer.isBot) {
+      const chosenCardId = executeBotBeaverSelection(evaluatedState);
+
+      if (chosenCardId) {
+        return handleCardSelectResolution(
+          evaluatedState,
+          chosenCardId,
+        );
+      }
+    }
+
+    // Human Path: Safely freeze turn advancement here for the choice tray UI
+    return evaluatedState;
+  }
+  // Handle standard peek overlays (Owl)
+  if (evaluatedState.targetPeekRequest !== null) {
+    const currentActivePlayer = getActivePlayer(evaluatedState);
     if (currentActivePlayer.isBot) {
       evaluatedState.targetPeekRequest = null;
       advanceTurnRotation(evaluatedState);
       return evaluatedState;
     }
-
-    // Freeze turn advancement here so the user can look at the UI Overlay
     return evaluatedState;
   }
 
+  // generic turn advancement. Other states should eventually end here
   advanceTurnRotation(evaluatedState);
-
+  gameLogger.log(`human has moved turn to : ${evaluatedState.players[evaluatedState.currentPlayerIndex]}`);
   return evaluatedState;
 }
 
@@ -194,21 +226,9 @@ export function handlePeekTurn(currentSnapshot: GameStateSnapshot) {
   const nextState = cloneSnapshot(currentSnapshot);
 
   nextState.targetPeekRequest = null;
-  nextState.currentPlayerIndex =
-    (nextState.currentPlayerIndex + 1) % nextState.players.length;
+  advanceTurnRotation(nextState);
 
   return handleStartTurn(nextState);
-}
-
-export function isTigerCardPlayMandatory(playerHand: CardData[]): boolean {
-  if (!playerHand || playerHand.length < 2) return false;
-
-  const hasTiger = playerHand.some((card) => card.type === CardType.Tiger);
-  const hasConditionalCard = playerHand.some(
-    (card) => card.type === CardType.Rhino || card.type === CardType.Lion,
-  );
-
-  return hasTiger && hasConditionalCard;
 }
 
 /**
@@ -216,13 +236,6 @@ export function isTigerCardPlayMandatory(playerHand: CardData[]): boolean {
  */
 function cloneSnapshot(snapshot: GameStateSnapshot): GameStateSnapshot {
   return JSON.parse(JSON.stringify(snapshot)) as GameStateSnapshot;
-}
-
-/**
- * Standardizes lookups for whichever player currently holds active execution focus.
- */
-function getActivePlayer(state: GameStateSnapshot): PlayerData {
-  return state.players[state.currentPlayerIndex];
 }
 
 /**
@@ -493,6 +506,28 @@ function resolveMeerkatEffect(state: GameStateSnapshot, targetId: string, guess:
 
 }
 
+/**
+ * Executes the Beaver draw logic, pulling up to 2 cards from the deck and bundling
+ * them straight into the cardSelectRequest array alongside the player's existing card.
+ */
+function resolveBeaverEffect(state: GameStateSnapshot): void {
+  const activePlayer = getActivePlayer(state);
+
+  if (state.deck.length < 2) {
+    return;
+  }
+
+  const selectionPool: CardData[] = [...activePlayer.hand];
+
+  for (let i = 0; i < 2; i++) {
+    const drawResult = drawCard(state.deck);
+    selectionPool.push(drawResult.drawnCard);
+    state.deck = drawResult.remainingDeck;
+  }
+
+  state.cardSelectRequest = selectionPool;
+}
+
 function executeCardEffectRules(
   state: GameStateSnapshot,
   playedCard: CardData,
@@ -526,6 +561,10 @@ function executeCardEffectRules(
         resolveMeerkatEffect(state, targetId, guess);
       }
       break;
+
+    case CardType.Beaver:
+      resolveBeaverEffect(state);
+      break;
   }
 }
 
@@ -550,3 +589,42 @@ function isMeerkatGuessPoolExhausted(state: GameStateSnapshot): boolean {
 
   return !hasLegalGuessesRemaining;
 }
+/**
+ * Processes the selection transaction for the Beaver card. Maps the single chosen card ID
+ * into the player's hand, and returns the rejected choices back to the bottom of the deck.
+ */
+export function handleCardSelectResolution(
+  currentSnapshot: GameStateSnapshot,
+  chosenCardId: string
+): GameStateSnapshot {
+  const nextState = cloneSnapshot(currentSnapshot);
+  const activePlayer = getActivePlayer(nextState);
+  const choicesPool = nextState.cardSelectRequest;
+
+  if (!choicesPool) {
+    console.error("[ENGINE CRITICAL]: Attempted to call handleCardSelectResolution but choices array is missing.");
+    return currentSnapshot;
+  }
+
+  const cardToKeep = choicesPool.find(c => c.id === chosenCardId);
+  if (!cardToKeep) {
+    console.error(`[ENGINE EXCEPTION]: Chosen card ID "${chosenCardId}" was not found inside the choice pool.`);
+    return currentSnapshot;
+  }
+
+  activePlayer.hand = [cardToKeep];
+  console.log(`[ENGINE]: ${activePlayer.name} resolved Beaver selection and retained ${CardType[cardToKeep.type]}.`);
+
+  let shuffledDeck = shuffleDeck(choicesPool);
+  shuffledDeck.forEach((card) => {
+    if (card.id !== chosenCardId) {
+      nextState.deck.push(card);
+    }
+  });
+
+  nextState.cardSelectRequest = null;
+  advanceTurnRotation(nextState);
+  return nextState;
+}
+
+

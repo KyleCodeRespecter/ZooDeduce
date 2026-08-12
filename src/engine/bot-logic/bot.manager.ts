@@ -4,7 +4,7 @@ import {
   CardData,
   CardType, TOTAL_CARD_DISTRIBUTION
 } from '../../types/game.types';
-import { isTigerCardPlayMandatory } from '../game.manager.ts';
+import { isTigerCardPlayMandatory } from '../utils/player.utils.ts';
 
 export interface BotMemorySnapshot {
   knownOpponentHands: Record<string, CardType>;
@@ -115,6 +115,22 @@ export function selectOptimalBotTarget(
   const randomIndex = Math.floor(Math.random() * validTargetIds.length);
   return validTargetIds[randomIndex];
 }
+
+/**
+ * Autonomous AI helper that evaluates the Beaver choice pool and returns the optimal card ID string.
+ * Pure decision layer—no mutations, no turn advancement, zero circular engine calls!
+ */
+export function executeBotBeaverSelection(state: GameStateSnapshot): string | null {
+  const choicesPool = state.cardSelectRequest;
+  if (!choicesPool || choicesPool.length === 0) return null;
+
+  const sortedOptions = [...choicesPool].sort((a, b) => b.type - a.type);
+  const choice = Math.trunc(Math.random() * sortedOptions.length);
+  const optimalCard = sortedOptions[choice];
+  return optimalCard.id;
+}
+
+
 
 /**
  * Smart deduction sweep that updates bot memories when a player plays a card.

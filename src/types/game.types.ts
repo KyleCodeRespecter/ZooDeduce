@@ -52,6 +52,7 @@ export interface GameStateSnapshot {
   winnerId: string;
   activeTargetRequest: TargetRequest | null;
   targetPeekRequest: string | null;
+  cardSelectRequest: CardData[] | null;
   botMemories: Record<string, Record<string, CardType>>;
 }
 

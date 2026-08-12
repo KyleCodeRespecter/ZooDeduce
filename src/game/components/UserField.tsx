@@ -3,7 +3,7 @@ import { CardData, CardType } from '../../types/game.types';
 import { Card } from './Card.tsx';
 import { UserFieldProps } from '../../types/fields.types.ts';
 import './user.field.css';
-import { isTigerCardPlayMandatory } from '../../engine/game.manager.ts';
+import { isTigerCardPlayMandatory } from '../../engine/utils/player.utils.ts';
 
 export function UserField({ player, isMyTurn, onCardPlayed }: UserFieldProps) {
 

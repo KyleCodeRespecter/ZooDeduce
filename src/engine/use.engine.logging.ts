@@ -11,6 +11,11 @@ export function useEngineLogging(
     if (gamePhase !== GamePhase.Gameplay || !gameState) {
       return;
     }
+    // skip ticks where a human ui is overlayed
+    if (gameState.activeTargetRequest || gameState.targetPeekRequest || gameState.cardSelectRequest)
+    {
+      return;
+    }
 
     if (!gameState.burnedCards) {
       gameLogger.logSystemAlert(
@@ -20,7 +25,7 @@ export function useEngineLogging(
       return;
     }
 
-    console.groupCollapsed(
+    console.group(
       `[ENGINE TICK] Phase: ${gamePhase} | Active Player Index: ${gameState.currentPlayerIndex}`,
     );
 

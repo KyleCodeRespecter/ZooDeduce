@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { GameEngineContext } from './game.engine.context.ts';
 import { CardType, GamePhase, GameStateSnapshot, PlayerConfig } from '../types/game.types.ts';
 import {
-  handleCardPlayPipeline, handlePeekTurn,
+  handleCardPlayPipeline, handleCardSelectResolution, handlePeekTurn,
   handleStartTurn,
   initializeMatch
 } from './game.manager.ts';
@@ -41,10 +41,11 @@ export function GameEngineProvider({
       declaredGuessValue,
     );
 
-    // handle target requests
+    // handle UI requests
     if (
       stateAfterPlay.activeTargetRequest !== null ||
-      stateAfterPlay.targetPeekRequest !== null
+      stateAfterPlay.targetPeekRequest !== null ||
+      stateAfterPlay.cardSelectRequest !== null
     ) {
       setGameState(stateAfterPlay);
       return; // Safe freeze. Awaits overlay menu selections.
@@ -67,11 +68,22 @@ export function GameEngineProvider({
     if (!gameState?.activeTargetRequest) return;
 
     const request = gameState.activeTargetRequest;
-    
+
     if (!request.requiresGuess) {
       playCardAction(request.cardId, targetPlayerId, null);
     }
   };
+
+  const selectHandCardAction = (cardId: string) => {
+    if (!gameState) return;
+
+    let updatedState = handleCardSelectResolution(gameState, cardId);
+
+    const finalizedSnapshot = handleStartTurn(updatedState);
+
+    setGameState(finalizedSnapshot);
+  };
+
 
   const startGame = (opponentCount: number) => {
     const setupConfigs: PlayerConfig[] = [
@@ -118,9 +130,10 @@ export function GameEngineProvider({
         setGamePhase,
         playCardAction,
         selectTargetAction,
+        selectHandCardAction,
         startGame,
         endGame,
-        dismissPeekAction
+        dismissPeekAction,
       }}
     >
       {children}

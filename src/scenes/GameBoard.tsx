@@ -7,6 +7,7 @@ import { ClientWorkspace } from '../game/board/ClientWorkspace';
 import '../game/board/board.styles.css';
 import { TargetSelectionOverlay } from '../game/board/TargetSelectionOverlay';
 import { CardViewOverlay } from '../game/board/CardViewOverlay.tsx';
+import { HandSelectionOverlay } from '../game/board/HandSelectionOverlay.tsx';
 
 export const GameBoard: React.FC = () => {
   const { gameState, playCardAction, dismissPeekAction } = useActiveGameState();
@@ -28,6 +29,10 @@ export const GameBoard: React.FC = () => {
   const cardsToReveal =
     shouldSurfacePeekModal && peekTargetOpponent ? peekTargetOpponent.hand : [];
 
+  const isBeaverSelectionActive = gameState.cardSelectRequest !== null;
+  const isHumanTurn = activePlayer.id === clientPlayer.id;
+  const shouldShowBeaverOverlay = isBeaverSelectionActive && isHumanTurn;
+
   return (
     <div className="game-board-container">
       <BoardHeader
@@ -36,6 +41,7 @@ export const GameBoard: React.FC = () => {
         burnCount={burnedCards.length}
       />
       <TargetSelectionOverlay />
+      {shouldShowBeaverOverlay && <HandSelectionOverlay />}
       {shouldSurfacePeekModal && (
         <CardViewOverlay
           title={
