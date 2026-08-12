@@ -20,6 +20,17 @@ export function useBotBrain({
       return;
     }
 
+    //prevents the bot from playing when modals are active
+    if (
+      gameState.activeTargetRequest !== null ||
+      gameState.targetPeekRequest !== null ||
+      gameState.cardSelectRequest !== null ||
+      gameState.showdown !== null ||
+      gameState.owlNotice !== null
+    ) {
+      return;
+    }
+
     const activePlayer = gameState.players[gameState.currentPlayerIndex];
 
     if (!activePlayer.isBot || activePlayer.isEliminated) {

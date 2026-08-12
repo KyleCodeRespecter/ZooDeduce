@@ -52,6 +52,11 @@ export interface StagBeetleShowdown{
   winnerId: string | null;
 }
 
+export interface OwlNotice {
+  casterId: string;
+  victimId: string;
+}
+
 export interface GameStateSnapshot {
   players: PlayerData[];
   deck: CardData[];
@@ -62,6 +67,7 @@ export interface GameStateSnapshot {
   targetPeekRequest: string | null;
   cardSelectRequest: CardData[] | null;
   showdown: StagBeetleShowdown | null;
+  owlNotice: OwlNotice | null;
   botMemories: Record<string, Record<string, CardType>>;
 }
 

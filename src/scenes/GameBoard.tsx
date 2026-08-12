@@ -9,6 +9,7 @@ import { TargetSelectionOverlay } from '../game/board/TargetSelectionOverlay';
 import { CardViewOverlay } from '../game/board/CardViewOverlay.tsx';
 import { HandSelectionOverlay } from '../game/board/HandSelectionOverlay.tsx';
 import { ShowdownOverlay } from '../game/board/ShowdownOverlay.tsx';
+import { OwlNoticeOverlay } from '../game/board/OwlNoticeOverlay.tsx';
 
 export const GameBoard: React.FC = () => {
   const { gameState, playCardAction, dismissPeekAction } = useActiveGameState();
@@ -22,9 +23,7 @@ export const GameBoard: React.FC = () => {
     ? gameState.players.find((p) => p.id === gameState.targetPeekRequest)
     : null;
   const shouldSurfacePeekModal =
-    peekTargetOpponent !== null &&
-    (activePlayer.id === clientPlayer.id ||
-      peekTargetOpponent?.id === clientPlayer.id);
+    peekTargetOpponent !== null && activePlayer.id === clientPlayer.id;
 
   // Show the hand details window only if a human initiated the Owl card execution look
   const cardsToReveal =
@@ -52,6 +51,7 @@ export const GameBoard: React.FC = () => {
         burnCount={burnedCards.length}
       />
       <TargetSelectionOverlay />
+      <OwlNoticeOverlay/>
       {shouldShowBeaverOverlay && <HandSelectionOverlay />}
       {shouldShowShowdownOverlay && <ShowdownOverlay />}
       {shouldSurfacePeekModal && (

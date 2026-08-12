@@ -42,6 +42,21 @@ export function GameEngineProvider({
     setGameState(finalizedSnapshot);
   };
 
+  const dismissOwlNoticeAction = () => {
+    if (!gameState || !gameState.owlNotice) return;
+
+    let nextState = JSON.parse(JSON.stringify(gameState)) as GameStateSnapshot;
+
+    nextState.owlNotice = null;
+    nextState.targetPeekRequest = null;
+
+    nextState.currentPlayerIndex =
+      (nextState.currentPlayerIndex + 1) % nextState.players.length;
+
+    const finalizedSnapshot = handleStartTurn(nextState);
+    setGameState(finalizedSnapshot);
+  };
+
   const playCardAction = (
     cardId: string,
     selectedTargetId: string | null = null,
@@ -151,7 +166,8 @@ export function GameEngineProvider({
         startGame,
         endGame,
         dismissPeekAction,
-        dismissShowdownAction
+        dismissShowdownAction,
+        dismissOwlNoticeAction
       }}
     >
       {children}

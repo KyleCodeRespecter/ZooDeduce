@@ -52,6 +52,7 @@ export function initializeMatch(
     targetPeekRequest: null,
     cardSelectRequest: null,
     showdown: null,
+    owlNotice: null,
     botMemories: {}
   };
 }
@@ -191,6 +192,11 @@ export function handleCardPlayPipeline(
   }
 
   // Handle standard peek overlays (Owl)
+  if (evaluatedState.owlNotice !== null) {
+    return evaluatedState;
+  }
+
+  // Handle standard peek overlays (Runs for Human Owl plays or Bot-vs-Bot peeks)
   if (evaluatedState.targetPeekRequest !== null) {
     const currentActivePlayer = getActivePlayer(evaluatedState);
     if (currentActivePlayer.isBot) {
@@ -408,11 +414,20 @@ function resolveOwlEffect(
 
   state.targetPeekRequest = targetId;
 
-  if (activePlayer.isBot) {
+  const isCasterBot = activePlayer.isBot;
+  if (isCasterBot) {
     if (!state.botMemories[activePlayer.id]) {
       state.botMemories[activePlayer.id] = {};
     }
     state.botMemories[activePlayer.id][targetId] = targetOpponent.hand[0].type;
+  }
+  const isTargetHuman = isHumanPlayerId(state, targetId);
+
+  if (isTargetHuman) {
+    state.owlNotice = {
+      casterId: activePlayer.id,
+      victimId: targetId,
+    };
   }
 }
 
