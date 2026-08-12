@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { GameEngineContext } from './game.engine.context.ts';
 import { CardType, GamePhase, GameStateSnapshot, PlayerConfig } from '../types/game.types.ts';
 import {
-  handleCardPlayPipeline, handleCardSelectResolution, handlePeekTurn,
+  handleCardPlayPipeline, handleCardSelectResolution, handlePeekTurn, handleShowdownElimination,
   handleStartTurn,
   initializeMatch
 } from './game.manager.ts';
@@ -23,6 +23,23 @@ export function GameEngineProvider({
     if (!gameState) return;
     const nextState = handlePeekTurn(gameState);
     setGameState(nextState);
+  };
+
+  const dismissShowdownAction = () => {
+    if (!gameState) return;
+
+    let updatedState = handleShowdownElimination(gameState);
+
+    if (updatedState.winnerId) {
+      setGameState(updatedState);
+      return;
+    }
+
+    updatedState.currentPlayerIndex =
+      (updatedState.currentPlayerIndex + 1) % updatedState.players.length;
+
+    const finalizedSnapshot = handleStartTurn(updatedState);
+    setGameState(finalizedSnapshot);
   };
 
   const playCardAction = (
@@ -134,6 +151,7 @@ export function GameEngineProvider({
         startGame,
         endGame,
         dismissPeekAction,
+        dismissShowdownAction
       }}
     >
       {children}

@@ -50,10 +50,6 @@
   transition: transform 0.15s ease;
 }
 
-.mini-history-card:hover {
-  transform: scale(1.03);
-}
-
 .theme-peacock   { border-color: var(--color-peacock);   background: var(--bg-peacock); }
 .theme-tiger     { border-color: var(--color-tiger);     background: var(--bg-tiger); }
 .theme-lion      { border-color: var(--color-lion);      background: var(--bg-lion); }

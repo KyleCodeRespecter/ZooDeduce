@@ -44,6 +44,14 @@ export interface TargetRequest {
   requiresGuess: boolean;
 }
 
+export interface StagBeetleShowdown{
+  challengerId: string;
+  targetId: string;
+  challengerCard: CardType;
+  targetCard: CardType;
+  winnerId: string | null;
+}
+
 export interface GameStateSnapshot {
   players: PlayerData[];
   deck: CardData[];
@@ -53,6 +61,7 @@ export interface GameStateSnapshot {
   activeTargetRequest: TargetRequest | null;
   targetPeekRequest: string | null;
   cardSelectRequest: CardData[] | null;
+  showdown: StagBeetleShowdown | null;
   botMemories: Record<string, Record<string, CardType>>;
 }
 

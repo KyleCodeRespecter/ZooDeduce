@@ -5,7 +5,7 @@ import {
   CardType,
   GameStateSnapshot,
   PlayerConfig,
-  PlayerData,
+  PlayerData, StagBeetleShowdown,
   TOTAL_CARD_DISTRIBUTION
 } from '../types/game.types';
 import { gameLogger } from '../ultils/logger/logger.ts';
@@ -51,6 +51,7 @@ export function initializeMatch(
     activeTargetRequest: null,
     targetPeekRequest: null,
     cardSelectRequest: null,
+    showdown: null,
     botMemories: {}
   };
 }
@@ -124,7 +125,7 @@ export function handleCardPlayPipeline(
           validTargetIds,
           playedCard,
         );
-        finalGuess = CardType.Owl; // placeholder
+        finalGuess = CardType.Owl;
       } else {
         finalTargetId = validTargetIds[0]; // Human auto-bypass selects the lone target
       }
@@ -166,10 +167,29 @@ export function handleCardPlayPipeline(
         );
       }
     }
-
-    // Human Path: Safely freeze turn advancement here for the choice tray UI
     return evaluatedState;
   }
+
+  //checking stag beetle showdown conditional
+  if (evaluatedState.showdown !== null) {
+    const showdown = evaluatedState.showdown;
+
+    const isHumanInvolved = isHumanInvolvedInShowdown(evaluatedState, showdown);
+
+    if (!isHumanInvolved) {
+      gameLogger.log(
+        `[AI SHOWDOWN BYPASS]: Pure Bot-vs-Bot duel detected. Resolving instantly in background.`,
+      );
+      let resolvedState = handleShowdownElimination(evaluatedState);
+      advanceTurnRotation(resolvedState);
+      return resolvedState;
+    }
+    gameLogger.log(
+      `[ENGINE FREEZE]: Human participant detected in showdown duel. Halting turn index loop rotations.`,
+    );
+    return evaluatedState;
+  }
+
   // Handle standard peek overlays (Owl)
   if (evaluatedState.targetPeekRequest !== null) {
     const currentActivePlayer = getActivePlayer(evaluatedState);
@@ -528,6 +548,37 @@ function resolveBeaverEffect(state: GameStateSnapshot): void {
   state.cardSelectRequest = selectionPool;
 }
 
+function resolveStagBeetleEffect(
+  state: GameStateSnapshot,
+  targetId: string,
+): void {
+  const challenger = getActivePlayer(state);
+  const target = state.players.find((p) => p.id === targetId);
+
+  if (
+    !target ||
+    target.isEliminated ||
+    target.hand.length === 0 ||
+    challenger.hand.length === 0
+  )
+    return;
+
+  const challengerCardType = challenger.hand[0].type;
+  const targetCardType = target.hand[0].type;
+
+  let winnerId: string | null = null;
+  if (challengerCardType > targetCardType) winnerId = challenger.id;
+  if (targetCardType > challengerCardType) winnerId = target.id;
+
+  state.showdown = {
+    challengerId: challenger.id,
+    targetId: targetId,
+    challengerCard: challengerCardType,
+    targetCard: targetCardType,
+    winnerId: winnerId,
+  };
+}
+
 function executeCardEffectRules(
   state: GameStateSnapshot,
   playedCard: CardData,
@@ -565,6 +616,13 @@ function executeCardEffectRules(
     case CardType.Beaver:
       resolveBeaverEffect(state);
       break;
+
+    case CardType.StagBeetle:
+      if (targetId)
+      {
+        resolveStagBeetleEffect(state, targetId);
+      }
+
   }
 }
 
@@ -626,5 +684,47 @@ export function handleCardSelectResolution(
   advanceTurnRotation(nextState);
   return nextState;
 }
+
+/**
+ * Eliminates the loser of a Stag Beetle showdown and drops their card into their discard pile.
+ */
+export function handleShowdownElimination(state: GameStateSnapshot): GameStateSnapshot {
+  const nextState = cloneSnapshot(state);
+  const showdown = nextState.showdown;
+  if (!showdown || !showdown.winnerId) {
+    nextState.showdown = null;
+    return nextState;
+  }
+
+  const loserId = showdown.challengerId === showdown.winnerId ? showdown.targetId : showdown.challengerId;
+  const loser = nextState.players.find(p => p.id === loserId);
+
+  if (loser) {
+    loser.isEliminated = true;
+    const deadCard = loser.hand.pop();
+    if (deadCard) loser.discardPile.push(deadCard.type);
+  }
+
+  nextState.showdown = null;
+  return evaluateAndFinalizeMatch(nextState);
+}
+
+/**
+ * Resolves whether a specific player UUID belongs to a human user inside a given state snapshot.
+ */
+export function isHumanPlayerId(state: GameStateSnapshot, playerId: string): boolean {
+  const player = state.players.find((p) => p.id === playerId);
+  return player ? !player.isBot : false;
+}
+
+/**
+ * Checks if a Stag Beetle showdown involves any living human participants.
+ * Returns true if EITHER the challenger OR the target is a human.
+ */
+function isHumanInvolvedInShowdown(state: GameStateSnapshot, showdown: StagBeetleShowdown): boolean {
+  return isHumanPlayerId(state, showdown.challengerId) || isHumanPlayerId(state, showdown.targetId);
+}
+
+
 
 

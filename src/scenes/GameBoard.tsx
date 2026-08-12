@@ -8,6 +8,7 @@ import '../game/board/board.styles.css';
 import { TargetSelectionOverlay } from '../game/board/TargetSelectionOverlay';
 import { CardViewOverlay } from '../game/board/CardViewOverlay.tsx';
 import { HandSelectionOverlay } from '../game/board/HandSelectionOverlay.tsx';
+import { ShowdownOverlay } from '../game/board/ShowdownOverlay.tsx';
 
 export const GameBoard: React.FC = () => {
   const { gameState, playCardAction, dismissPeekAction } = useActiveGameState();
@@ -33,6 +34,16 @@ export const GameBoard: React.FC = () => {
   const isHumanTurn = activePlayer.id === clientPlayer.id;
   const shouldShowBeaverOverlay = isBeaverSelectionActive && isHumanTurn;
 
+  const showdown = gameState.showdown;
+  const isShowdownActive = showdown !== null;
+
+  const isHumanFighterInvolved =
+    isShowdownActive &&
+    (showdown.challengerId === clientPlayer.id ||
+      showdown.targetId === clientPlayer.id);
+
+  const shouldShowShowdownOverlay = isShowdownActive && isHumanFighterInvolved;
+
   return (
     <div className="game-board-container">
       <BoardHeader
@@ -42,6 +53,7 @@ export const GameBoard: React.FC = () => {
       />
       <TargetSelectionOverlay />
       {shouldShowBeaverOverlay && <HandSelectionOverlay />}
+      {shouldShowShowdownOverlay && <ShowdownOverlay />}
       {shouldSurfacePeekModal && (
         <CardViewOverlay
           title={

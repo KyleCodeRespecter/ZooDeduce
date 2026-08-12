@@ -15,6 +15,7 @@ interface GameContextType {
   startGame: (opponentCount: number) => void;
   endGame: () => void;
   dismissPeekAction: () => void;
+  dismissShowdownAction: () => void;
 }
 
 export const GameEngineContext = createContext<GameContextType | undefined>(
