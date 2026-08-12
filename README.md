@@ -29,7 +29,7 @@ Make sure you have Node.js installed on your machine.
 ---
 
 ## Future Roadmap
-
+- Set up a bot decision matrix for playing more logical moves
 - Incorporate Favor Tokens currency tracking to persist match victories across multiple rounds.
-- Implement native HTML5 Drag and Drop into a designated central Field Mat alongside universal click-to-inspect description popup overlays.
+- Click-to-inspect description popup overlays.
 - Add a local multiplayer hot-seat mode utilizing the modular PlayerConfig architecture.
