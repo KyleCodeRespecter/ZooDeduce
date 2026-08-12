@@ -5,12 +5,13 @@ import {
   CardType,
   GameStateSnapshot,
   PlayerConfig,
-  PlayerData, StagBeetleShowdown,
+  PlayerData,
+  StagBeetleShowdown,
   TOTAL_CARD_DISTRIBUTION
 } from '../types/game.types';
 import { gameLogger } from '../ultils/logger/logger.ts';
 import {
-  auditBotMemoriesOnCardPlay,
+  auditBotMemoriesOnCardPlay, calculateSmartBotGuess,
   executeBotBeaverSelection,
   selectOptimalBotTarget
 } from './bot-logic/bot.manager.ts';
@@ -126,7 +127,10 @@ export function handleCardPlayPipeline(
           validTargetIds,
           playedCard,
         );
-        finalGuess = CardType.Owl;
+        if (finalTargetId)
+        {
+          finalGuess = CardType.Owl // default
+        }
       } else {
         finalTargetId = validTargetIds[0]; // Human auto-bypass selects the lone target
       }
@@ -148,6 +152,9 @@ export function handleCardPlayPipeline(
   auditBotMemoriesOnCardPlay(nextState, activePlayer, playedCard.type);
 
   if (finalTargetId || !playedCard.requiresTarget) {
+    if (activePlayer.isBot) {
+      finalGuess = calculateSmartBotGuess(nextState, activePlayer, finalTargetId);
+    }
     executeCardEffectRules(nextState, playedCard, finalTargetId, finalGuess);
   }
 
