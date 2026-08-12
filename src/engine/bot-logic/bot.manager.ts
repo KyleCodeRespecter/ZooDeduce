@@ -158,7 +158,7 @@ export function executeBotCardSelection(
  * Selects an intelligent target ID for a bot from a pre-filtered list of legal options.
  */
 export function selectOptimalBotTarget(
-  state: GameStateSnapshot,
+  _state: GameStateSnapshot,
   botPlayer: PlayerData,
   validTargetIds: string[],
   playedCard: CardData,
