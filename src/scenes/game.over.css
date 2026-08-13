@@ -1,0 +1,24 @@
+.game-over-screen
+{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    width: 100vw;
+    color: white;
+    background-color: #232222;
+}
+
+.main-menu-button
+{
+    display: flex;
+    color: black;
+    background-color: #5be6e6;
+    border: 1px solid #2c7878;
+}
+
+.winner-text
+{
+    margin: 1em;
+}

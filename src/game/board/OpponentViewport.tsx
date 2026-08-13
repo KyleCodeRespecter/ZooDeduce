@@ -1,5 +1,3 @@
-// src/components/game/board/OpponentViewport.tsx
-
 import React from 'react';
 import { OpponentViewportProps } from './board.types';
 import { UserDiscardField } from '../components/UserDiscardField';
@@ -9,7 +7,17 @@ export const OpponentViewport: React.FC<OpponentViewportProps> = ({
   opponent,
   isCurrentTurn,
 }) => {
-  const { name, hand, discardPile, isEliminated, isProtected } = opponent;
+  const { name, discardPile, isEliminated, isProtected } = opponent;
+  const hasActiveStatus = isEliminated || isProtected;
+  let statusText = 'Ready';
+  let statusModifierClass = 'idle';
+  if (isEliminated) {
+    statusText = 'Eliminated';
+    statusModifierClass = 'eliminated-state';
+  } else if (isProtected) {
+    statusText = 'Protected';
+    statusModifierClass = 'protected-state';
+  }
 
   return (
     <div
@@ -20,13 +28,14 @@ export const OpponentViewport: React.FC<OpponentViewportProps> = ({
       <div className="opponent-meta">
         <h4 className="opponent-name">{name}</h4>
 
-        {isProtected && <span className="shield-badge">🛡️ Protected</span>}
-        {isEliminated && (
-          <strong className="eliminated-badge">💀 Eliminated</strong>
-        )}
+        <span
+          className={`player-status ${statusModifierClass} ${hasActiveStatus ? 'active' : ''}`}
+        >
+          {statusText}
+        </span>
 
-        <div className="card-count-indicator">
-          <span>Cards in Hand:</span> <strong>{hand.length}</strong>
+        <div className="discard-title">
+          <span>Discard Zone:</span>
         </div>
       </div>
 

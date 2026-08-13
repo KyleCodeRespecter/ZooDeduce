@@ -45,7 +45,12 @@
 }
 
 .card-view-wrapper {
-    flex-shrink: 0;
+    width: 100%;
+    max-width: 160px;
+    aspect-ratio: 1 / 1.45;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .overlay-acknowledge-button {
