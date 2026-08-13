@@ -19,13 +19,13 @@ export function Card({ card, isPlayable, onPlay }: CardProps) {
 
       <div className="card-body">
         <h2 className="card-title">{cardName}</h2>
-      </div>
-
       {isPlayable && (
         <button className="play-card-button" onClick={() => onPlay(card.id)}>
           Play Card
         </button>
       )}
+      </div>
+
     </div>
   );
 }

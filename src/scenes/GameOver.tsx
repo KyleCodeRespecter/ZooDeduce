@@ -29,7 +29,7 @@ export function GameOver({ onTransition }: SceneProps) {
       <h2>Match Over!</h2>
       <div className='winner-text'>{victoryDeclarationText}</div>
       <button className='main-menu-button' onClick={() => onTransition(GamePhase.MainMenu)}>
-        Return to Title Screen
+        Main Menu
       </button>
     </div>
   );

@@ -1,30 +1,32 @@
 
-/* Main wrapper for the local player's hand area */
 .user-field-zone {
     display: flex;
     flex-direction: column;
     align-items: stretch;
     justify-content: flex-start;
     width: 100%;
+    height: 100% !important;
     max-height: 100%;
     min-width: 0 !important;
     min-height: 0 !important;
-    flex: 1;
+    flex: 1 1 auto;
 }
 
 .user-field-zone h3 {
     margin: 0;
     text-align: left;
-    font-size: clamp(1.1rem, 2.5vw, 1.5rem); /* Prevents header scaling from blowing up */
+    font-size: clamp(1.1rem, 2.5vw, 1.5rem);
     padding-bottom: 0.25rem;
-    flex-shrink: 0;          /* Forbids header text from swallowing screen footprint */
+    flex-shrink: 0;
 }
 
 .user-field-zone.active-turn {
-    margin-top: 0 ;
+    margin-top: 0;
     padding: 1.25rem;
     border: 0.375rem solid #cccccc;
     border-radius: 1rem;
+    height: 100% !important;
+    box-sizing: border-box;
 }
 
 .user-field-cards-container {
@@ -38,13 +40,13 @@
     width: 100%;
     max-width: 600px;
     margin: 0 auto;
-    flex: 1;
+    flex: 1 1 auto !important;
 }
 
 .user-card-wrapper {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     cursor: pointer;
-    flex-shrink: 1; /* Allows individual cards to compress instead of exploding layout bounds */
+    flex-shrink: 1;
 }
 
 /* Elevate card on hover when it's the player's turn */

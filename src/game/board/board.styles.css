@@ -77,6 +77,7 @@ html, body {
 .client-workspace {
     display: flex;
     flex-direction: column;
+    justify-content: flex-end;
     flex: 1;
     min-height: 0;
     background-color: #181818;
@@ -134,10 +135,8 @@ html, body {
     margin: 0.25rem 0;
     box-sizing: border-box;
     width: fit-content;
-
     opacity: 0;
     visibility: hidden;
-    /*transition: opacity 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;*/
 }
 
 .player-status.active {
@@ -174,12 +173,24 @@ html, body {
 
 .client-hand-container {
     flex: 1;
-    min-height: 0;
+    min-width: 0;
     background-color: #1a1a1a;
     border-radius: 0.5rem;
     padding: clamp(1rem, 2vw, 1.5rem);
     display: flex;
     flex-direction: column;
+    justify-content: center;
+    height: 100%;
+}
+
+.client-feed-placeholder-box {
+    flex: 1;
+    min-width: 200px;
+    background-color: #151515;
+    border: 2px dashed #2a2a2a;
+    border-radius: 0.5rem;
+    box-sizing: border-box;
+    height: 100%;
 }
 
 .client-hand-zone {
@@ -190,7 +201,19 @@ html, body {
     gap: clamp(0.6rem, 1.2vw, 1rem);
     min-height: 0;
     width: 100%;
-    flex: 0 1 auto !important;
+    flex: 1 1 auto !important;
+}
+
+.client-layout-row {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 1.5rem;
+    width: 100%;
+    box-sizing: border-box;
+    flex: 1;
+    min-height: 0;
+    margin-top: 0;
 }
 
 .client-hand-zone .card {
@@ -207,3 +230,32 @@ html, body {
         transition: none !important;
     }
 }
+
+@media (max-width: 600px), (max-aspect-ratio: 1/1) {
+    .client-layout-row {
+        flex-direction: column;
+        gap: 0.75rem;
+        flex: 1 1 auto !important;
+        height: 100%;
+    }
+
+    .client-hand-container {
+        order: 2;
+        width: 100% !important;
+        padding: 0.75rem;
+        flex: 0 0 auto !important;
+        height: auto !important;
+    }
+
+    .client-feed-placeholder-box {
+        order: 1;
+        width: 100% !important;
+        background-color: #151515;
+        flex: 1 1 auto !important;
+        min-height: 120px;
+        height: auto !important;
+    }
+}
+
+
+

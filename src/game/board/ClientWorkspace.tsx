@@ -51,14 +51,17 @@ export const ClientWorkspace: React.FC<ClientWorkspaceProps> = ({
         </div>
       </div>
 
-      <div className="client-hand-container">
-        <div className="client-hand-zone">
-          <UserField
-            player={player}
-            isMyTurn={isCurrentTurn}
-            onCardPlayed={onPlayCard}
-          />
+      <div className="client-layout-row">
+        <div className="client-hand-container">
+          <div className="client-hand-zone">
+            <UserField
+              player={player}
+              isMyTurn={isCurrentTurn}
+              onCardPlayed={onPlayCard}
+            />
+          </div>
         </div>
+        <div className="client-feed-placeholder-box">Active Feed</div>
       </div>
     </section>
   );
