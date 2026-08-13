@@ -1,6 +1,5 @@
 import { CardData, CardType } from '../../types/game.types';
 import './card.css'
-import { getCardDescription } from '../../engine/utils/card.utils.ts';
 
 interface CardProps {
   card: CardData;
@@ -20,7 +19,6 @@ export function Card({ card, isPlayable, onPlay }: CardProps) {
 
       <div className="card-body">
         <h2 className="card-title">{cardName}</h2>
-        <p className="card-description">{getCardDescription(card.type)}</p>
       </div>
 
       {isPlayable && (

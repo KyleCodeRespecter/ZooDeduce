@@ -1,11 +1,10 @@
 import { useActiveGameState } from '../../engine/game.engine.context.ts';
-import './showdown.overlay.css'; // Reuses your clean center flex layouts sheet smoothly
+import './showdown.overlay.css';
 
 export function OwlNoticeOverlay() {
   const { gameState, dismissOwlNoticeAction } = useActiveGameState();
   const notice = gameState?.owlNotice;
 
-  // Hide the alert modal entirely if no bot-on-human notices are pending
   if (!notice) return null;
 
   const nameLookup = gameState.players.reduce(
@@ -16,7 +15,6 @@ export function OwlNoticeOverlay() {
 
   return (
     <div className="target-overlay-backdrop">
-      {/* Reusing your unified modal layout tokens */}
       <div className="target-overlay-modal showdown-modal">
         <h3 className="target-overlay-title" style={{ color: '#ff4a4a' }}>
           Alert
@@ -33,8 +31,7 @@ export function OwlNoticeOverlay() {
               lineHeight: '1.5',
             }}
           >
-            <b>{casterName}</b> played an <b>Owl card</b> and peeked at your
-            hidden hand cards!
+            <b>{casterName}</b> played an <b>Owl card</b> and peeked at your hand
           </p>
         </div>
 
