@@ -1,0 +1,23 @@
+.menu-screen
+{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    width: 100vw;
+    color: white;
+    background-color: #232222;
+}
+
+.bot-selector
+{
+    padding: 1em;
+}
+.play-game-button
+{
+    display: flex;
+    color: black;
+    background-color: #5be6e6;
+    border: 1px solid #2c7878;
+}
