@@ -1,23 +1,18 @@
 
 .card-component {
     position: relative;
+    width: 100% !important;
+    max-width: 140px;
+    min-width: 90px;
 
-    /*
-      1. ASPECT RATIO & FLUID SIZING
-      Preserves standard 2:3 playing card proportions (240x360).
-      Fluid width scales smoothly between 160px and 240px using viewport/container widths.
-    */
-    width: clamp(10rem, 20vw, 15rem);
-    aspect-ratio: 2 / 3;
+    aspect-ratio: 1 / 1.45 !important;
 
-    /* Container Query context enables text/badges to scale based on CARD size, not screen size */
     container-type: inline-size;
 
     border-radius: clamp(0.5rem, 4cqw, 1rem);
     background: #ffffff;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 
-    /* Padding scales relative to the card's width */
     padding: clamp(0.75rem, 8cqw, 1.5rem);
     box-sizing: border-box;
 
@@ -26,10 +21,14 @@
     justify-content: space-between;
 
     border: 0.25rem solid #333333;
+
+    flex: 0 1 auto !important;
+
     transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.2s ease;
     font-family: system-ui, -apple-system, sans-serif;
     user-select: none;
 }
+
 
 /* Hover effects when the card is playable */
 .card-component.playable {

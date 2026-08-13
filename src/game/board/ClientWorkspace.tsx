@@ -10,6 +10,20 @@ export const ClientWorkspace: React.FC<ClientWorkspaceProps> = ({
   onPlayCard,
 }) => {
   const { discardPile, isProtected, isEliminated } = player;
+  const hasActiveStatus = isEliminated || isProtected || isCurrentTurn;
+  let statusText = 'Ready';
+  let statusModifierClass = 'idle';
+
+  if (isEliminated) {
+    statusText = 'Eliminated';
+    statusModifierClass = 'eliminated-state';
+  } else if (isProtected) {
+    statusText = 'Protected';
+    statusModifierClass = 'protected-state';
+  } else if (isCurrentTurn) {
+    statusText = 'Your Turn!';
+    statusModifierClass = 'turn-state';
+  }
 
   return (
     <section
@@ -21,11 +35,11 @@ export const ClientWorkspace: React.FC<ClientWorkspaceProps> = ({
             <h3>Your Hand</h3>
           </div>
           <div className="status-badges">
-            {isProtected && <span className="shield-badge">🛡️ Protected</span>}
-            {isEliminated && (
-              <strong className="eliminated-badge">💀 Eliminated</strong>
-            )}
-            {isCurrentTurn && <span className="turn-badge">Your Turn!</span>}
+            <span
+              className={`player-status ${statusModifierClass} ${hasActiveStatus ? 'active' : ''}`}
+            >
+              {statusText}
+            </span>
           </div>
         </div>
 
