@@ -4,6 +4,10 @@ A turn-based multiplayer deduction card game built with React, TypeScript, and n
 
 ---
 
+## Live Demo
+
+[ZooDeduce](https://kylecoderespecter.github.io/ZooDeduce/) running on GitHub pages
+
 ## Game Parameters and Rules
 
 * **Turn Mechanics**: At the start of a turn, players automatically draw a card from the deck. A player chooses a card from their hand to play.
