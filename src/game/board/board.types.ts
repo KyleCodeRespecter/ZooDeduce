@@ -1,4 +1,6 @@
-import { CardData, PlayerData } from '../../types/game.types';
+import { PlayerData } from '../../types/game.types';
+import { CardData } from '../../types/card.types.ts';
+import { MatchLogEntry } from '../../ultils/feed.utils.ts';
 
 /**
  * Contract for the global telemetry header tracking match state.
@@ -24,6 +26,7 @@ export interface ClientWorkspaceProps {
   player: PlayerData;
   isCurrentTurn: boolean;
   onPlayCard: (cardId: string) => void;
+  actionFeed: MatchLogEntry[];
 }
 
 export interface CardViewOverlayProps {

@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
-import { GamePhase, GameStateSnapshot, CardType } from '../types/game.types.ts';
+import { GamePhase, GameStateSnapshot } from '../types/game.types.ts';
 import { gameLogger } from '../ultils/logger/logger.ts';
+import { CardType } from '../types/card.types.ts';
 
 export function useEngineLogging(
   gamePhase: GamePhase,

@@ -1,4 +1,4 @@
-import { CardData, CardType } from '../../types/game.types';
+import { CardData, CardType } from '../../types/card.types.ts';
 import './card.css'
 import '../../ultils/button.styles.css';
 

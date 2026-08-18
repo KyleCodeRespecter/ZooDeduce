@@ -1,13 +1,14 @@
-// src/components/game/board/ClientWorkspace.tsx
 import React from 'react';
 import { ClientWorkspaceProps } from './board.types';
 import { UserField } from '../components/UserField.tsx';
 import { UserDiscardField } from '../components/UserDiscardField.tsx';
+import { formatLogMessage } from '../../ultils/feed.utils.ts'
 
 export const ClientWorkspace: React.FC<ClientWorkspaceProps> = ({
   player,
   isCurrentTurn,
   onPlayCard,
+  actionFeed,
 }) => {
   const { discardPile, isProtected, isEliminated } = player;
   const hasActiveStatus = isEliminated || isProtected || isCurrentTurn;
@@ -61,7 +62,25 @@ export const ClientWorkspace: React.FC<ClientWorkspaceProps> = ({
             />
           </div>
         </div>
-        <div className="client-feed-placeholder-box">Active Feed</div>
+        <div className="client-feed-placeholder-box">
+          <h4 className="feed-header-title">Game Log</h4>
+          <div className="client-feed-placeholder-box">
+            <h4 className="feed-header-title">Game Log</h4>
+            <div className="feed-log-stream-box">
+              {actionFeed && actionFeed.length > 0 ? (
+                actionFeed.map((logEntry, index) => (
+                  <p key={`log-row-${index}`} className="feed-log-entry">
+                    {formatLogMessage(logEntry)}
+                  </p>
+                ))
+              ) : (
+                <p className="feed-log-entry idle-prompt">
+                  Awaiting initial arena deployment telemetry...
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );

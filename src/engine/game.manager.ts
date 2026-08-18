@@ -1,8 +1,6 @@
 import { createFreshDeck, drawCard, shuffleDeck } from './utils/deck.utils.ts';
 import { createPlayer, dealStartingHands, getActivePlayer } from './utils/player.utils.ts';
 import {
-  CardData,
-  CardType,
   GameStateSnapshot,
   PlayerConfig,
   PlayerData,
@@ -15,6 +13,8 @@ import {
   executeBotBeaverSelection,
   selectOptimalBotTarget
 } from './bot-logic/bot.manager.ts';
+import { MatchLogEntry } from '../ultils/feed.utils.ts';
+import { CardData, CardType } from '../types/card.types.ts';
 
 /**
  * Initializes a new match snapshot, burning initial seed cards and dealing hands.
@@ -43,6 +43,10 @@ export function initializeMatch(
     currentDeck,
   );
 
+  const initialLog: MatchLogEntry = {
+    eventType: 'GAME_START',
+  };
+
   return {
     players: updatedPlayers,
     deck: remainingDeck,
@@ -54,7 +58,8 @@ export function initializeMatch(
     cardSelectRequest: null,
     showdown: null,
     owlNotice: null,
-    botMemories: {}
+    botMemories: {},
+    actionFeed: [initialLog]
   };
 }
 
@@ -148,6 +153,15 @@ export function handleCardPlayPipeline(
   activePlayer.discardPile.push(playedCard.type);
   nextState.activeTargetRequest = null;
 
+  appendLogToFeed(
+    nextState,
+    activePlayer.name,
+    playedCard.type,
+    null,
+    finalTargetId,
+    finalGuess ? CardType[finalGuess] : null,
+  );
+
   // Run the memory audit before executing effect rules, capturing the exact state of the board
   auditBotMemoriesOnCardPlay(nextState, activePlayer, playedCard.type);
 
@@ -179,6 +193,7 @@ export function handleCardPlayPipeline(
   }
 
   //checking stag beetle showdown conditional
+  //TODO: When playing a stag beetle and I won with a peacock, I noticed another tick occurred and I have 3 cards on my next turn
   if (evaluatedState.showdown !== null) {
     const showdown = evaluatedState.showdown;
 
@@ -188,7 +203,22 @@ export function handleCardPlayPipeline(
       gameLogger.log(
         `[AI SHOWDOWN BYPASS]: Pure Bot-vs-Bot duel detected. Resolving instantly in background.`,
       );
+      const challenger = evaluatedState.players.find(
+        (p) => p.id === showdown.challengerId,
+      );
+      const opponent = evaluatedState.players.find(
+        (p) => p.id === showdown.targetId,
+      );
+
       let resolvedState = handleShowdownElimination(evaluatedState);
+      appendLogToFeed(
+        resolvedState,
+        challenger?.name || 'unknown',
+        CardType.StagBeetle,
+        'ELIMINATION',
+        opponent?.name || 'unknown',
+      );
+
       advanceTurnRotation(resolvedState);
       return resolvedState;
     }
@@ -745,6 +775,35 @@ export function isHumanPlayerId(state: GameStateSnapshot, playerId: string): boo
  */
 function isHumanInvolvedInShowdown(state: GameStateSnapshot, showdown: StagBeetleShowdown): boolean {
   return isHumanPlayerId(state, showdown.challengerId) || isHumanPlayerId(state, showdown.targetId);
+}
+
+function appendLogToFeed(
+  state: GameStateSnapshot,
+  actorName: string,
+  cardType: CardType,
+  eventType: string | null = null,
+  targetName: string | null = null,
+  extraDetails: string | null = null,
+): void {
+
+  if (!state.actionFeed) state.actionFeed = [];
+
+  const targetPlayer = targetName
+    ? state.players.find((p) => p.id === targetName)
+    : null;
+  const eventKey = eventType
+    ? eventType
+    : `${CardType[cardType].toUpperCase()}_PLAY`;
+
+  const freshLog: MatchLogEntry = {
+    eventType: eventKey as any,
+    actorName: actorName,
+    cardType: cardType,
+    targetName: targetPlayer ? targetPlayer.name : undefined,
+    extraDetails: extraDetails || undefined,
+  };
+
+  state.actionFeed = [freshLog, ...state.actionFeed];
 }
 
 

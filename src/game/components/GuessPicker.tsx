@@ -1,5 +1,6 @@
 import React from 'react';
-import { CardType, TOTAL_CARD_DISTRIBUTION } from '../../types/game.types';
+import { TOTAL_CARD_DISTRIBUTION } from '../../types/game.types';
+import { CardType } from '../../types/card.types.ts';
 
 interface GuessPickerProps {
   targetName: string;

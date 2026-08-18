@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { GameEngineContext } from './game.engine.context.ts';
-import { CardType, GamePhase, GameStateSnapshot, PlayerConfig } from '../types/game.types.ts';
+import { GamePhase, GameStateSnapshot, PlayerConfig } from '../types/game.types.ts';
+import { CardType } from '../types/card.types.ts';
 import {
   handleCardPlayPipeline, handleCardSelectResolution, handlePeekTurn, handleShowdownElimination,
   handleStartTurn,

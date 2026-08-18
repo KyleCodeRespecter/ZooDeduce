@@ -1,5 +1,6 @@
-import { CardType, GamePhase, GameStateSnapshot } from '../types/game.types.ts';
+import { GamePhase, GameStateSnapshot } from '../types/game.types.ts';
 import { createContext, useContext } from 'react';
+import { CardType } from '../types/card.types.ts';
 
 interface GameContextType {
   gameState: GameStateSnapshot | null;

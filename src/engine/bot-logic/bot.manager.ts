@@ -1,10 +1,10 @@
 import {
   GameStateSnapshot,
   PlayerData,
-  CardData,
-  CardType, TOTAL_CARD_DISTRIBUTION
+  TOTAL_CARD_DISTRIBUTION
 } from '../../types/game.types';
 import { isTigerCardPlayMandatory } from '../utils/player.utils.ts';
+import { CardData, CardType } from '../../types/card.types.ts';
 
 export interface BotMemorySnapshot {
   knownOpponentHands: Record<string, CardType>;

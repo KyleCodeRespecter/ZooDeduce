@@ -1,6 +1,6 @@
 // src/components/game/RulesGuideModal.tsx
 import React, { useState } from 'react';
-import { CardType } from '../../types/game.types';
+import { CardType } from '../../types/card.types.ts';
 import { getCardDescription } from '../../engine/utils/card.utils.ts';
 import './rule.guide.css';
 import '../../ultils/button.styles.css';

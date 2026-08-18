@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useActiveGameState } from '../../engine/game.engine.context.ts';
 import { getCardDescription } from '../../engine/utils/card.utils';
-import { CardType } from '../../types/game.types.ts';
+import { CardType } from '../../types/card.types.ts';
 import { OpponentPicker } from '../components/OpponentPicker';
 import { GuessPicker } from '../components/GuessPicker';
 import './opponent.selection.overlay.css';
