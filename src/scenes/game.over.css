@@ -10,14 +10,6 @@
     background-color: #232222;
 }
 
-.main-menu-button
-{
-    display: flex;
-    color: black;
-    background-color: #5be6e6;
-    border: 1px solid #2c7878;
-}
-
 .winner-text
 {
     margin: 1em;

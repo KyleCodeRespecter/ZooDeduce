@@ -1,6 +1,7 @@
 import { GamePhase } from '../types/game.types';
 import { useEndGameState } from '../engine/game.engine.context.ts';
 import './game.over.css'
+import '../ultils/button.styles.css'
 
 interface SceneProps {
   onTransition: (nextPhase: GamePhase) => void;
@@ -27,8 +28,11 @@ export function GameOver({ onTransition }: SceneProps) {
   return (
     <div className="game-over-screen">
       <h2>Match Over!</h2>
-      <div className='winner-text'>{victoryDeclarationText}</div>
-      <button className='main-menu-button' onClick={() => onTransition(GamePhase.MainMenu)}>
+      <div className="winner-text">{victoryDeclarationText}</div>
+      <button
+        className="back-to-main-menu-button"
+        onClick={() => onTransition(GamePhase.MainMenu)}
+      >
         Main Menu
       </button>
     </div>

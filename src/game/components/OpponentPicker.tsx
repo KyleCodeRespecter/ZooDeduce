@@ -1,4 +1,5 @@
 import { PlayerData } from '../../types/game.types';
+import '../../ultils/button.styles.css';
 
 interface OpponentPickerProps {
   cardName: string;

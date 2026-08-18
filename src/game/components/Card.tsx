@@ -1,5 +1,6 @@
 import { CardData, CardType } from '../../types/game.types';
 import './card.css'
+import '../../ultils/button.styles.css';
 
 interface CardProps {
   card: CardData;

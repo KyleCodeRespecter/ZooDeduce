@@ -14,10 +14,3 @@
 {
     padding: 1em;
 }
-.play-game-button
-{
-    display: flex;
-    color: black;
-    background-color: #5be6e6;
-    border: 1px solid #2c7878;
-}

@@ -1,0 +1,239 @@
+
+.rules-guide-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(4px);
+    z-index: 10000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+    padding: 1.5rem;
+}
+
+.rules-guide-modal-box {
+    background-color: #1a1a1a;
+    border: 3px solid #333333;
+    border-radius: 1.25rem;
+    padding: 1.75rem;
+    max-width: 550px;
+    width: 100%;
+    max-height: 80vh;
+    text-align: center;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+}
+
+.rules-scroll-container {
+    width: 100%;
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding-right: 0.4rem;
+    box-sizing: border-box;
+}
+
+.rules-scroll-container::-webkit-scrollbar {
+    width: 6px;
+}
+.rules-scroll-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 3px;
+}
+.rules-scroll-container::-webkit-scrollbar-thumb {
+    background: #333333;
+    border-radius: 3px;
+}
+.rules-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: #444444;
+}
+
+.rules-modal-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+    border-bottom: 1px solid #2a2a2a;
+    padding-bottom: 0.75rem;
+}
+
+.rules-modal-header .overlay-view-title {
+    margin: 0 !important;
+}
+
+.rules-tab-bar {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.rules-tab-btn {
+    flex: 1;
+    max-width: 160px;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background-color: #222222;
+    color: #666666;
+    border: 1px solid #333333;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.rules-tab-btn:hover {
+    color: #aaaaaa;
+    background-color: #2a2a2a;
+}
+
+.rules-tab-btn.active {
+    background-color: #2c7878;
+    border-color: #00cccc;
+    color: #121212;
+    box-shadow: 0 0 8px rgba(0, 204, 204, 0.2);
+}
+
+.cards-tab-view {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    width: 100%;
+}
+
+.rule-card-row {
+    display: grid !important;
+    grid-template-columns: 2.25rem 1fr !important;
+    align-items: center !important;
+    gap: 1rem;
+
+    background-color: rgba(255, 255, 255, 0.02);
+    border-left: 4px solid #333333;
+    border-radius: 6px;
+    padding: 0.6rem 1rem;
+    box-sizing: border-box;
+    text-align: left;
+    transition: background-color 0.15s ease;
+}
+
+.rule-card-row:hover {
+    background-color: rgba(255, 255, 255, 0.04);
+}
+
+.rule-value-block-badge {
+    width: 2.25rem;
+    height: 2.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-weight: 900;
+    font-size: 1.15rem;
+    border-radius: 6px;
+    box-sizing: border-box;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    flex-shrink: 0;
+}
+
+.rule-card-body-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.rule-animal-name {
+    margin: 0;
+    font-weight: 800;
+    font-size: 1.05rem;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+}
+
+.rule-effect-description {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    color: #a5a5a5;
+}
+
+.gameplay-tab-view {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    text-align: left;
+    padding: 0.25rem;
+}
+
+.gameplay-guide-section h3 {
+    margin: 0 0 0.4rem 0;
+    font-size: 1rem;
+    color: #ffffff;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+}
+
+.gameplay-guide-section p {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: #999999;
+}
+
+.gameplay-guide-section strong {
+    color: #00cccc;
+}
+
+.victory-box {
+    background-color: rgba(0, 204, 204, 0.03);
+    border: 1px dashed rgba(0, 204, 204, 0.2);
+    border-radius: 6px;
+    padding: 0.85rem 1rem;
+}
+
+.victory-box h3 {
+    color: #00cccc !important;
+}
+
+.victory-box ul {
+    margin: 0.5rem 0 0 0;
+    padding-left: 1.15rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.victory-box li {
+    font-size: 0.85rem;
+    line-height: 1.4;
+    color: #aaaaaa;
+}
+
+@media (max-width: 480px) {
+    .rules-guide-modal-box {
+        padding: 1.25rem;
+        max-height: 85vh;
+        gap: 1rem;
+    }
+
+    .rule-card-row {
+        gap: 0.75rem;
+        padding: 0.5rem 0.75rem;
+    }
+
+    .rule-value-block-badge {
+        width: 2rem;
+        height: 2rem;
+        font-size: 1rem;
+    }
+}
