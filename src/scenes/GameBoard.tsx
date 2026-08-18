@@ -11,11 +11,12 @@ import { ShowdownOverlay } from '../game/board/ShowdownOverlay.tsx';
 import { OwlNoticeOverlay } from '../game/board/OwlNoticeOverlay.tsx';
 import '../game/board/board.styles.css';
 import '../ultils/button.styles.css';
+import { RulesGuideModal } from '../game/components/RuleGuideModal.tsx';
 
 export const GameBoard: React.FC = () => {
   const { gameState, playCardAction, dismissPeekAction } = useActiveGameState();
   const { players, currentPlayerIndex, deck, burnedCards } = gameState;
-  const [_isRulesOpen, setIsRulesOpen] = useState<boolean>(false);
+  const [isRulesOpen, setIsRulesOpen] = useState<boolean>(false);
 
   // Resolve active, client, and opponent player data views
   const activePlayer = players[currentPlayerIndex];
@@ -47,6 +48,7 @@ export const GameBoard: React.FC = () => {
 
   return (
     <div className="game-board-container">
+      {isRulesOpen && <RulesGuideModal onClose={() => setIsRulesOpen(false)} />}
       <div className="board-top-meta-group">
         <BoardHeader
           activePlayerName={activePlayer?.name ?? 'Unknown'}

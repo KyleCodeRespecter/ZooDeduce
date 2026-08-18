@@ -4,6 +4,7 @@ import { BotCountSelector } from '../game/components/main-menu/OpponentSelector.
 import { useGameEngineContext } from '../engine/game.engine.context.ts';
 import './main.menu.css'
 import '../ultils/button.styles.css'
+import { RulesGuideModal } from '../game/components/RuleGuideModal.tsx';
 
 interface MainMenuProps {
   onTransition: (nextPhase: GamePhase) => void;
@@ -11,7 +12,7 @@ interface MainMenuProps {
 
 export function MainMenu({ onTransition }: MainMenuProps) {
   const [opponentCount, setOpponentCount] = useState<number>(2);
-  const [_isRulesOpen, setIsRulesOpen] = useState<boolean>(false);
+  const [isRulesOpen, setIsRulesOpen] = useState<boolean>(false);
   const { startGame } = useGameEngineContext();
 
   const handlePlayGame = () => {
@@ -21,6 +22,7 @@ export function MainMenu({ onTransition }: MainMenuProps) {
 
   return (
     <div className="menu-screen">
+      {isRulesOpen && <RulesGuideModal onClose={() => setIsRulesOpen(false)} />}
       <h1>Zoo Deduce</h1>
       <p>Deduce your fellow zoo animals</p>
 
@@ -31,10 +33,7 @@ export function MainMenu({ onTransition }: MainMenuProps) {
       <button className="play-game-button" onClick={handlePlayGame}>
         Play Game
       </button>
-      <button
-        className="menu-button"
-        onClick={() => setIsRulesOpen(true)}
-      >
+      <button className="menu-button" onClick={() => setIsRulesOpen(true)}>
         Rules
       </button>
     </div>
