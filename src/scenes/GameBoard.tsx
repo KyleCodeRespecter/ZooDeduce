@@ -1,19 +1,21 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useActiveGameState } from '../engine/game.engine.context';
 import { BoardHeader } from '../game/board/BoardHeader';
 import { OpponentViewport } from '../game/board/OpponentViewport';
 import { ClientWorkspace } from '../game/board/ClientWorkspace';
-import '../game/board/board.styles.css';
 import { TargetSelectionOverlay } from '../game/board/TargetSelectionOverlay';
 import { CardViewOverlay } from '../game/board/CardViewOverlay.tsx';
 import { HandSelectionOverlay } from '../game/board/HandSelectionOverlay.tsx';
 import { ShowdownOverlay } from '../game/board/ShowdownOverlay.tsx';
 import { OwlNoticeOverlay } from '../game/board/OwlNoticeOverlay.tsx';
+import '../game/board/board.styles.css';
+import '../ultils/button.styles.css';
 
 export const GameBoard: React.FC = () => {
   const { gameState, playCardAction, dismissPeekAction } = useActiveGameState();
   const { players, currentPlayerIndex, deck, burnedCards } = gameState;
+  const [_isRulesOpen, setIsRulesOpen] = useState<boolean>(false);
 
   // Resolve active, client, and opponent player data views
   const activePlayer = players[currentPlayerIndex];
@@ -45,13 +47,21 @@ export const GameBoard: React.FC = () => {
 
   return (
     <div className="game-board-container">
-      <BoardHeader
-        activePlayerName={activePlayer?.name ?? 'Unknown'}
-        deckCount={deck.length}
-        burnCount={burnedCards.length}
-      />
+      <div className="board-top-meta-group">
+        <BoardHeader
+          activePlayerName={activePlayer?.name ?? 'Unknown'}
+          deckCount={deck.length}
+          burnCount={burnedCards.length}
+        />
+        <button
+          className="in-game-rules-toggle"
+          onClick={() => setIsRulesOpen(true)}
+        >
+          Rules
+        </button>
+      </div>
       <TargetSelectionOverlay />
-      <OwlNoticeOverlay/>
+      <OwlNoticeOverlay />
       {shouldShowBeaverOverlay && <HandSelectionOverlay />}
       {shouldShowShowdownOverlay && <ShowdownOverlay />}
       {shouldSurfacePeekModal && (
