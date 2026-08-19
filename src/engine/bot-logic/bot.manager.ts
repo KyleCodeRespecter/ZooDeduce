@@ -157,6 +157,8 @@ export function executeBotCardSelection(
 /**
  * Selects an intelligent target ID for a bot from a pre-filtered list of legal options.
  */
+
+//TODO: Bot played an owl card on unknown instead of a valid player
 export function selectOptimalBotTarget(
   _state: GameStateSnapshot,
   botPlayer: PlayerData,

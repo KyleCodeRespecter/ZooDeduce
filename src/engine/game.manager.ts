@@ -91,11 +91,13 @@ export function handleCardPlayPipeline(
     );
 
     if (validTargetIds.length === 0) {
-      return executeFizzleResolution(
+      return completeTurnWithResolution(
+        currentSnapshot,
         nextState,
         activePlayer,
         cardIndex,
         playedCard,
+        'FIZZLED (Targets Protected)',
       );
     }
     // condition if meerkat cannot guess anything
@@ -103,11 +105,13 @@ export function handleCardPlayPipeline(
       playedCard.type === CardType.Meerkat &&
       isMeerkatGuessPoolExhausted(nextState)
     ) {
-      return executeFizzleResolution(
+      return completeTurnWithResolution(
+        currentSnapshot,
         nextState,
         activePlayer,
         cardIndex,
         playedCard,
+        'FIZZLED (Guess Pool Exhausted)',
       );
     }
     // condition if there are not two cards for the beaver to draw
@@ -115,12 +119,14 @@ export function handleCardPlayPipeline(
       nextState.deck.length < 2
     )
     {
-      return executeFizzleResolution(
+      return completeTurnWithResolution(
+        currentSnapshot,
         nextState,
         activePlayer,
         cardIndex,
         playedCard,
-      )
+        'FIZZLED (Deck Exhausted)',
+      );
     }
 
     // Assess if the engine can auto-bypass selection menus (1-on-1 or Bots)
@@ -226,14 +232,11 @@ export function handleCardPlayPipeline(
     const currentActivePlayer = getActivePlayer(evaluatedState);
     if (currentActivePlayer.isBot) {
       evaluatedState.targetPeekRequest = null;
-      advanceTurnRotation(evaluatedState);
       return evaluatedState;
     }
     return evaluatedState;
   }
 
-  // generic turn advancement. Other states should eventually end here
-  advanceTurnRotation(evaluatedState);
   gameLogger.log(`human has moved turn to : ${evaluatedState.players[evaluatedState.currentPlayerIndex]}`);
   logNewEliminations(currentSnapshot, evaluatedState);
   return evaluatedState;
@@ -247,10 +250,13 @@ export function handleStartTurn(
 ): GameStateSnapshot {
   const nextState = cloneSnapshot(currentSnapshot);
 
-  // If no cards to draw we can finalize the game
-  if (nextState.deck.length === 0) {
+  const structuralVictoryCheck = evaluateAndFinalizeMatch(nextState);
+  if (structuralVictoryCheck.winnerId || nextState.deck.length === 0) {
     return evaluateAndFinalizeMatch(nextState);
   }
+
+  // move to the next player
+  advanceTurnRotation(nextState);
 
   let activePlayer = getActivePlayer(nextState);
   let safetyCounter = 0;
@@ -278,7 +284,6 @@ export function handlePeekTurn(currentSnapshot: GameStateSnapshot) {
   const nextState = cloneSnapshot(currentSnapshot);
 
   nextState.targetPeekRequest = null;
-  advanceTurnRotation(nextState);
 
   return handleStartTurn(nextState);
 }
@@ -340,28 +345,6 @@ function shouldBypassTargeting(
   // Humans auto-bypass if only 1 target choice exists, unless it's a Rhino card
   // or meerkat. Meerkat will always need to guess
   return hasLoneTarget && !isRhino && !isMeerkat;
-}
-
-/**
- * Immutably discards a card if all viable targets have active protections active.
- */
-function executeFizzleResolution(
-  state: GameStateSnapshot,
-  activePlayer: PlayerData,
-  cardIndex: number,
-  playedCard: CardData,
-): GameStateSnapshot {
-  gameLogger.log(
-    `[ENGINE]: All targets protected. ${activePlayer.name}'s ${CardType[playedCard.type]} fizzled.`,
-  );
-
-  activePlayer.hand.splice(cardIndex, 1);
-  activePlayer.discardPile.push(playedCard.type);
-  state.activeTargetRequest = null;
-  state.targetPeekRequest = null;
-  advanceTurnRotation(state);
-
-  return state;
 }
 
 /**
@@ -711,7 +694,6 @@ export function handleCardSelectResolution(
   }
 
   activePlayer.hand = [cardToKeep];
-  console.log(`[ENGINE]: ${activePlayer.name} resolved Beaver selection and retained ${CardType[cardToKeep.type]}.`);
 
   let shuffledDeck = shuffleDeck(choicesPool);
   shuffledDeck.forEach((card) => {
@@ -721,7 +703,6 @@ export function handleCardSelectResolution(
   });
 
   nextState.cardSelectRequest = null;
-  advanceTurnRotation(nextState);
   return nextState;
 }
 
@@ -731,10 +712,9 @@ export function handleCardSelectResolution(
 export function handleShowdownElimination(state: GameStateSnapshot): GameStateSnapshot {
   const nextState = cloneSnapshot(state);
   const showdown = nextState.showdown;
+  nextState.showdown = null;
   // Ties need to manually update the turn
   if (!showdown || !showdown.winnerId) {
-    nextState.showdown = null;
-    advanceTurnRotation(nextState);
     return nextState;
   }
 
@@ -747,9 +727,8 @@ export function handleShowdownElimination(state: GameStateSnapshot): GameStateSn
     if (deadCard) loser.discardPile.push(deadCard.type);
   }
 
-  nextState.showdown = null;
   logNewEliminations(state, nextState);
-  return evaluateAndFinalizeMatch(nextState);
+  return nextState;
 }
 
 /**
@@ -815,6 +794,46 @@ function logNewEliminations(
     }
   });
 }
+
+/**
+ * Concludes a card play turn that resulted in a fizzle or non-overlay action,
+ * handles immutable hand removal, logs the telemetry, and rotates the player index clock.
+ */
+function completeTurnWithResolution(
+  currentSnapshot: GameStateSnapshot,
+  nextState: GameStateSnapshot,
+  activePlayer: PlayerData,
+  cardIndex: number,
+  playedCard: CardData,
+  logDetails: string
+): GameStateSnapshot {
+
+  activePlayer.hand.splice(cardIndex, 1);
+  activePlayer.discardPile.push(playedCard.type);
+  nextState.activeTargetRequest = null;
+
+  appendLogToFeed(
+    nextState,
+    activePlayer.name,
+    playedCard.type,
+    null,
+    null,
+    logDetails
+  );
+
+  const evaluatedState = evaluateAndFinalizeMatch(nextState);
+  if (evaluatedState.winnerId) {
+    logNewEliminations(currentSnapshot, evaluatedState);
+    return evaluatedState;
+  }
+
+  advanceTurnRotation(evaluatedState);
+
+  logNewEliminations(currentSnapshot, evaluatedState);
+
+  return evaluatedState;
+}
+
 
 
 
