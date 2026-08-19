@@ -3,6 +3,7 @@ import { ClientWorkspaceProps } from './board.types';
 import { UserField } from '../components/UserField.tsx';
 import { UserDiscardField } from '../components/UserDiscardField.tsx';
 import { formatLogMessage } from '../../ultils/feed.utils.ts'
+import './board.styles.css'
 
 export const ClientWorkspace: React.FC<ClientWorkspaceProps> = ({
   player,
@@ -62,10 +63,8 @@ export const ClientWorkspace: React.FC<ClientWorkspaceProps> = ({
             />
           </div>
         </div>
-        <div className="client-feed-placeholder-box">
+        <div className="client-feed-container">
           <h4 className="feed-header-title">Game Log</h4>
-          <div className="client-feed-placeholder-box">
-            <h4 className="feed-header-title">Game Log</h4>
             <div className="feed-log-stream-box">
               {actionFeed && actionFeed.length > 0 ? (
                 actionFeed.map((logEntry, index) => (
@@ -79,7 +78,6 @@ export const ClientWorkspace: React.FC<ClientWorkspaceProps> = ({
                 </p>
               )}
             </div>
-          </div>
         </div>
       </div>
     </section>

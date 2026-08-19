@@ -132,10 +132,6 @@ export function handleCardPlayPipeline(
           validTargetIds,
           playedCard,
         );
-        if (finalTargetId)
-        {
-          finalGuess = CardType.Owl // default
-        }
       } else {
         finalTargetId = validTargetIds[0]; // Human auto-bypass selects the lone target
       }
@@ -153,6 +149,16 @@ export function handleCardPlayPipeline(
   activePlayer.discardPile.push(playedCard.type);
   nextState.activeTargetRequest = null;
 
+  // Run the memory audit before executing effect rules, capturing the exact state of the board
+  auditBotMemoriesOnCardPlay(nextState, activePlayer, playedCard.type);
+  if (
+    activePlayer.isBot &&
+    playedCard.type === CardType.Meerkat &&
+    finalTargetId
+  ) {
+    finalGuess = calculateSmartBotGuess(nextState, activePlayer, finalTargetId);
+  }
+
   appendLogToFeed(
     nextState,
     activePlayer.name,
@@ -162,18 +168,16 @@ export function handleCardPlayPipeline(
     finalGuess ? CardType[finalGuess] : null,
   );
 
-  // Run the memory audit before executing effect rules, capturing the exact state of the board
-  auditBotMemoriesOnCardPlay(nextState, activePlayer, playedCard.type);
 
   if (finalTargetId || !playedCard.requiresTarget) {
-    if (activePlayer.isBot) {
-      finalGuess = calculateSmartBotGuess(nextState, activePlayer, finalTargetId);
-    }
     executeCardEffectRules(nextState, playedCard, finalTargetId, finalGuess);
   }
 
   const evaluatedState = evaluateAndFinalizeMatch(nextState);
-  if (evaluatedState.winnerId) return evaluatedState;
+  if (evaluatedState.winnerId) {
+    logNewEliminations(currentSnapshot, evaluatedState)
+    return evaluatedState;
+  }
 
   // checking the evaluated state of the beaver card
   if (evaluatedState.cardSelectRequest !== null) {
@@ -201,30 +205,18 @@ export function handleCardPlayPipeline(
 
     if (!isHumanInvolved) {
       gameLogger.log(
-        `[AI SHOWDOWN BYPASS]: Pure Bot-vs-Bot duel detected. Resolving instantly in background.`,
+        `[AI SHOWDOWN BYPASS]: Pure Bot-vs-Bot duel detected. Resolving.`,
       );
-      const challenger = evaluatedState.players.find(
-        (p) => p.id === showdown.challengerId,
-      );
-      const opponent = evaluatedState.players.find(
-        (p) => p.id === showdown.targetId,
-      );
-
       let resolvedState = handleShowdownElimination(evaluatedState);
-      appendLogToFeed(
-        resolvedState,
-        challenger?.name || 'unknown',
-        CardType.StagBeetle,
-        'ELIMINATION',
-        opponent?.name || 'unknown',
-      );
 
       advanceTurnRotation(resolvedState);
+      logNewEliminations(currentSnapshot, resolvedState);
       return resolvedState;
     }
     gameLogger.log(
       `[ENGINE FREEZE]: Human participant detected in showdown duel. Halting turn index loop rotations.`,
     );
+    logNewEliminations(currentSnapshot, evaluatedState);
     return evaluatedState;
   }
 
@@ -247,6 +239,7 @@ export function handleCardPlayPipeline(
   // generic turn advancement. Other states should eventually end here
   advanceTurnRotation(evaluatedState);
   gameLogger.log(`human has moved turn to : ${evaluatedState.players[evaluatedState.currentPlayerIndex]}`);
+  logNewEliminations(currentSnapshot, evaluatedState);
   return evaluatedState;
 }
 
@@ -804,6 +797,25 @@ function appendLogToFeed(
   };
 
   state.actionFeed = [freshLog, ...state.actionFeed];
+}
+
+function logNewEliminations(
+  initialSnapshot: GameStateSnapshot,
+  mutatedSnapshot: GameStateSnapshot,
+): void {
+  initialSnapshot.players.forEach((prevPlayer) => {
+    const nextPlayer = mutatedSnapshot.players.find(
+      (p) => p.id === prevPlayer.id,
+    );
+    if (nextPlayer && !prevPlayer.isEliminated && nextPlayer.isEliminated) {
+      appendLogToFeed(
+        mutatedSnapshot,
+        nextPlayer.name,
+        0 as CardType,
+        'ELIMINATION',
+      );
+    }
+  });
 }
 
 

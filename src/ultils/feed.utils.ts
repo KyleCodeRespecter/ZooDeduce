@@ -26,7 +26,7 @@ export function formatLogMessage(entry: MatchLogEntry): string {
       return `${entry.actorName} played a Chameleon.`;
 
     case CardType.StagBeetle:
-      return `${entry.actorName} played a Stag Beetle on ${entry.targetName || 'Unknown'}! Outcome: ${entry.extraDetails || 'Secret'}.`;
+      return `${entry.actorName} played a Stag Beetle on ${entry.targetName || 'Unknown'}.`;
 
     case CardType.Rhino:
       return `${entry.actorName} played a Rhino on ${entry.targetName || 'Unknown'}.`;
