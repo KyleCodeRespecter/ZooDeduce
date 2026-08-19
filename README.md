@@ -33,9 +33,6 @@ Make sure you have Node.js installed on your machine.
 ---
 
 ## Future Roadmap
-- Setting up active feed to relay turn information to all users
-- color coding players 1 - 6, and using those colors for player zones & active feed messenging.
-- Click-to-inspect description popup overlays.
 - Set up a bot decision matrix for playing more logical moves
 - Incorporate Favor Token tracking to persist match victories across multiple rounds.
 - Add a local multiplayer hot-seat mode utilizing the modular PlayerConfig architecture.
