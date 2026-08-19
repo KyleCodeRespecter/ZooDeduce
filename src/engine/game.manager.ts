@@ -757,10 +757,17 @@ function appendLogToFeed(
 ): void {
 
   if (!state.actionFeed) state.actionFeed = [];
-
+  const actorIndex = state.players.findIndex(
+    (p) => p.name === actorName || p.id === actorName,
+  );
   const targetPlayer = targetName
-    ? state.players.find((p) => p.id === targetName)
+    ? state.players.find((p) => p.id === targetName || p.name === targetName)
     : null;
+
+  const targetIndex = targetPlayer
+    ? state.players.findIndex((p) => p.id === targetPlayer.id)
+    : undefined;
+
   const eventKey = eventType
     ? eventType
     : `${CardType[cardType].toUpperCase()}_PLAY`;
@@ -768,8 +775,10 @@ function appendLogToFeed(
   const freshLog: MatchLogEntry = {
     eventType: eventKey as any,
     actorName: actorName,
+    actorIndex: actorIndex !== -1 ? actorIndex : 0,
     cardType: cardType,
     targetName: targetPlayer ? targetPlayer.name : undefined,
+    targetIndex: targetIndex,
     extraDetails: extraDetails || undefined,
   };
 

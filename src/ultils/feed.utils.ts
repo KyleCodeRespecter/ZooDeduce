@@ -6,52 +6,74 @@ export type LogEventType =
 export interface MatchLogEntry {
   eventType: LogEventType;
   actorName?: string;
+  actorIndex?: number;
   cardType?: CardType;
   targetName?: string; // Optional target recipient
+  targetIndex?: number;
   extraDetails?: string; // specialized text parameters like Meerkat guesses
 }
 
-export function formatLogMessage(entry: MatchLogEntry): string {
+/*Formats messages based on a MatchLogEntry, returning an array of text objects
+* which can include information of whether the text is an actor or a target
+* */
+export function formatLogMessage(
+  entry: MatchLogEntry
+): Array<{ text: string; isActor?: boolean; isTarget?: boolean }> {
+
+  const actorSeg = { text: entry.actorName || 'Unknown', isActor: true };
+  const targetSeg = entry.targetName ? { text: entry.targetName, isTarget: true } : { text: 'Nobody' };
+
   switch (entry.cardType) {
     case CardType.Meerkat:
-      return `${entry.actorName} initiated a Meerkat guess targeting ${entry.targetName || 'Unknown'}, guessing [${entry.extraDetails || 'Unknown'}].`;
+      return [
+        actorSeg,
+        { text: ' initiated a Meerkat guess targeting ' },
+        targetSeg,
+        { text: `, guessing [${entry.extraDetails || 'Unknown'}].` }
+      ];
 
     case CardType.Owl:
-      return `${entry.actorName} used an Owl to peek at ${entry.targetName || 'Unknown'}'s hand.`;
+      return [
+        actorSeg,
+        { text: " used an Owl to peek at " },
+        targetSeg,
+        { text: "'s hand." }
+      ];
 
     case CardType.Beaver:
-      return `${entry.actorName} played a Beaver.`;
+      return [actorSeg, { text: ' played a Beaver.' }];
 
     case CardType.Chameleon:
-      return `${entry.actorName} played a Chameleon.`;
+      return [actorSeg, { text: ' played a Chameleon.' }];
 
     case CardType.StagBeetle:
-      return `${entry.actorName} played a Stag Beetle on ${entry.targetName || 'Unknown'}.`;
+      return [actorSeg, { text: ' played a Stag Beetle on ' }, targetSeg, { text: '.' }];
 
     case CardType.Rhino:
-      return `${entry.actorName} played a Rhino on ${entry.targetName || 'Unknown'}.`;
+      return [actorSeg, { text: ' played a Rhino on ' }, targetSeg, { text: '.' }];
 
     case CardType.Lion:
-      return `${entry.actorName} played a Lion on ${entry.targetName || 'Unknown'}.`;
+      return [actorSeg, { text: ' played a Lion on ' }, targetSeg, { text: '.' }];
 
     case CardType.Tiger:
-      return `${entry.actorName} played a Tiger.`;
+      return [actorSeg, { text: ' played a Tiger.' }];
 
     case CardType.Peacock:
-      return `${entry.actorName} played a Peacock.`;
+      return [actorSeg, { text: ' played a Peacock.' }];
 
     default:
-      if (entry.eventType === 'GAME_START')
-      {
-        return 'Round has started';
+      if (entry.eventType === 'GAME_START') {
+        return [{ text: 'Round has started' }];
       }
       if (entry.eventType === 'ELIMINATION') {
-        return `❌ ${entry.actorName} has been eliminated!`;
+        return [{ text: '❌ ' }, actorSeg, { text: ' has been eliminated!' }];
       }
       if (entry.eventType === 'ROUND_COMPLETE') {
-        return `Round has ended`;
+        return [{ text: 'Round has ended' }];
       }
-      return `[SYSTEM EVENT]: ${entry.actorName} registered action data status [${entry.eventType}].`;
+      return [{ text: `[SYSTEM EVENT]: ${entry.actorName} registered status [${entry.eventType}].` }];
   }
 }
+
+
 

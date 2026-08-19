@@ -2,7 +2,7 @@ import React from 'react';
 import { ClientWorkspaceProps } from './board.types';
 import { UserField } from '../components/UserField.tsx';
 import { UserDiscardField } from '../components/UserDiscardField.tsx';
-import { formatLogMessage } from '../../ultils/feed.utils.ts'
+import { formatLogMessage } from '../../ultils/feed.utils.ts';
 import './board.styles.css'
 
 export const ClientWorkspace: React.FC<ClientWorkspaceProps> = ({
@@ -10,6 +10,7 @@ export const ClientWorkspace: React.FC<ClientWorkspaceProps> = ({
   isCurrentTurn,
   onPlayCard,
   actionFeed,
+  style,
 }) => {
   const { discardPile, isProtected, isEliminated } = player;
   const hasActiveStatus = isEliminated || isProtected || isCurrentTurn;
@@ -30,6 +31,7 @@ export const ClientWorkspace: React.FC<ClientWorkspaceProps> = ({
   return (
     <section
       className={`client-workspace ${isCurrentTurn ? 'active-turn' : ''}`}
+      style={style}
     >
       <div className="client-top-bar">
         <div className="client-info-group">
@@ -65,19 +67,51 @@ export const ClientWorkspace: React.FC<ClientWorkspaceProps> = ({
         </div>
         <div className="client-feed-container">
           <h4 className="feed-header-title">Game Log</h4>
-            <div className="feed-log-stream-box">
-              {actionFeed && actionFeed.length > 0 ? (
-                actionFeed.map((logEntry, index) => (
-                  <p key={`log-row-${index}`} className="feed-log-entry">
-                    {formatLogMessage(logEntry)}
+          <div className="feed-log-stream-box">
+            {actionFeed && actionFeed.length > 0 ? (
+              actionFeed.map((logEntry, index) => {
+                // Grab the pre-segmented anonymous objects array
+                const segments = formatLogMessage(logEntry);
+
+                const actorColor = `var(--player-color-${logEntry.actorIndex})`;
+                const targetColor =
+                  logEntry.targetIndex !== undefined
+                    ? `var(--player-color-${logEntry.targetIndex})`
+                    : '#ffffff';
+
+                return (
+                  <p
+                    key={`log-row-${index}`}
+                    className="feed-log-entry"
+                    style={{ margin: '0 0 0.4rem 0', lineHeight: '1.4' }}
+                  >
+                    {segments.map((seg, subIndex) => {
+                      let segmentStyle: React.CSSProperties = {};
+
+                      if (seg.isActor) {
+                        segmentStyle = { color: actorColor, fontWeight: '800' };
+                      } else if (seg.isTarget) {
+                        segmentStyle = {
+                          color: targetColor,
+                          fontWeight: '800',
+                        };
+                      }
+
+                      return (
+                        <span key={subIndex} style={segmentStyle}>
+                          {seg.text}
+                        </span>
+                      );
+                    })}
                   </p>
-                ))
-              ) : (
-                <p className="feed-log-entry idle-prompt">
-                  Awaiting initial arena deployment telemetry...
-                </p>
-              )}
-            </div>
+                );
+              })
+            ) : (
+              <p className="feed-log-entry idle-prompt">
+                Awaiting initial arena deployment telemetry...
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </section>

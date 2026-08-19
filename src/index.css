@@ -27,6 +27,13 @@
 
     --color-meerkat: #cc0000;
     --bg-meerkat: #ffe6e6;
+
+    --player-color-0: #ff4a4a;
+    --player-color-1: #3b82f6;
+    --player-color-2: #edbf48;
+    --player-color-3: #10b981;
+    --player-color-4: #f3870e;
+    --player-color-5: #a855f7;
 }
 
 body {

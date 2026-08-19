@@ -1,6 +1,7 @@
 import { PlayerData } from '../../types/game.types';
 import { CardData } from '../../types/card.types.ts';
 import { MatchLogEntry } from '../../ultils/feed.utils.ts';
+import React from 'react';
 
 /**
  * Contract for the global telemetry header tracking match state.
@@ -17,6 +18,7 @@ export interface BoardHeaderProps {
 export interface OpponentViewportProps {
   opponent: PlayerData;
   isCurrentTurn: boolean;
+  style?: React.CSSProperties;
 }
 
 /**
@@ -27,6 +29,7 @@ export interface ClientWorkspaceProps {
   isCurrentTurn: boolean;
   onPlayCard: (cardId: string) => void;
   actionFeed: MatchLogEntry[];
+  style?: React.CSSProperties;
 }
 
 export interface CardViewOverlayProps {
