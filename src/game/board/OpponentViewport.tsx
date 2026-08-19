@@ -6,6 +6,7 @@ import './board.styles.css'
 export const OpponentViewport: React.FC<OpponentViewportProps> = ({
   opponent,
   isCurrentTurn,
+  style,
 }) => {
   const { name, discardPile, isEliminated, isProtected } = opponent;
   const hasActiveStatus = isEliminated || isProtected;
@@ -24,6 +25,7 @@ export const OpponentViewport: React.FC<OpponentViewportProps> = ({
       className={`opponent-viewport ${isCurrentTurn ? 'active-turn' : ''} ${
         isEliminated ? 'eliminated' : ''
       }`}
+      style={style}
     >
       <div className="opponent-meta">
         <h4 className="opponent-name">{name}</h4>

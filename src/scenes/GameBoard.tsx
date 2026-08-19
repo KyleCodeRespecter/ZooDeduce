@@ -79,13 +79,21 @@ export const GameBoard: React.FC = () => {
         />
       )}
       <section className="opponents-zone">
-        {opponents.map((opp) => (
-          <OpponentViewport
-            key={opp.id}
-            opponent={opp}
-            isCurrentTurn={players[currentPlayerIndex]?.id === opp.id}
-          />
-        ))}
+        {opponents.map((opp) => {
+          // Find the true absolute index of this bot inside the original players array
+          const absoluteIndex = gameState.players.findIndex(
+            (p) => p.id === opp.id,
+          );
+
+          return (
+            <OpponentViewport
+              key={opp.id}
+              opponent={opp}
+              isCurrentTurn={players[currentPlayerIndex]?.id === opp.id}
+              style={{ borderColor: `var(--player-color-${absoluteIndex})` }}
+            />
+          );
+        })}
       </section>
 
       <ClientWorkspace
@@ -93,6 +101,11 @@ export const GameBoard: React.FC = () => {
         isCurrentTurn={activePlayer?.id === clientPlayer.id}
         onPlayCard={playCardAction}
         actionFeed={gameState.actionFeed ?? []}
+        style={{
+          borderColor: `var(--player-color-${gameState.players.findIndex(
+            (p) => p.id === clientPlayer.id,
+          )})`,
+        }}
       />
     </div>
   );

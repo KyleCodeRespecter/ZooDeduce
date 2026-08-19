@@ -10,6 +10,7 @@ export const ClientWorkspace: React.FC<ClientWorkspaceProps> = ({
   isCurrentTurn,
   onPlayCard,
   actionFeed,
+  style,
 }) => {
   const { discardPile, isProtected, isEliminated } = player;
   const hasActiveStatus = isEliminated || isProtected || isCurrentTurn;
@@ -30,6 +31,7 @@ export const ClientWorkspace: React.FC<ClientWorkspaceProps> = ({
   return (
     <section
       className={`client-workspace ${isCurrentTurn ? 'active-turn' : ''}`}
+      style={style}
     >
       <div className="client-top-bar">
         <div className="client-info-group">

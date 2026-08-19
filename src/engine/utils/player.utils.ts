@@ -101,3 +101,10 @@ export function isTigerCardPlayMandatory(playerHand: CardData[]): boolean {
 
   return hasTiger && hasConditionalCard;
 }
+
+/**
+ * Returns the CSS variable string or raw hex mapping for a given player index.
+ */
+export function getPlayerColorVar(index: number): string {
+  return `var(--player-color-${index % 6})`;
+}
