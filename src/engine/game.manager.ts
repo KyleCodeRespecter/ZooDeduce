@@ -175,7 +175,6 @@ export function handleCardPlayPipeline(
 
   const evaluatedState = evaluateAndFinalizeMatch(nextState);
   if (evaluatedState.winnerId) {
-    logNewEliminations(currentSnapshot, evaluatedState)
     return evaluatedState;
   }
 
@@ -197,7 +196,6 @@ export function handleCardPlayPipeline(
   }
 
   //checking stag beetle showdown conditional
-  //TODO: When playing a stag beetle and I won with a peacock, I noticed another tick occurred and I have 3 cards on my next turn
   if (evaluatedState.showdown !== null) {
     const showdown = evaluatedState.showdown;
 
@@ -209,14 +207,12 @@ export function handleCardPlayPipeline(
       );
       let resolvedState = handleShowdownElimination(evaluatedState);
 
-      advanceTurnRotation(resolvedState);
       logNewEliminations(currentSnapshot, resolvedState);
       return resolvedState;
     }
     gameLogger.log(
       `[ENGINE FREEZE]: Human participant detected in showdown duel. Halting turn index loop rotations.`,
     );
-    logNewEliminations(currentSnapshot, evaluatedState);
     return evaluatedState;
   }
 
@@ -397,7 +393,6 @@ function evaluateAndFinalizeMatch(state: GameStateSnapshot): GameStateSnapshot {
     state.winnerId = tiedWinners.map((w) => w.id).join(',');
     return state;
   }
-
   return state;
 }
 
@@ -736,8 +731,10 @@ export function handleCardSelectResolution(
 export function handleShowdownElimination(state: GameStateSnapshot): GameStateSnapshot {
   const nextState = cloneSnapshot(state);
   const showdown = nextState.showdown;
+  // Ties need to manually update the turn
   if (!showdown || !showdown.winnerId) {
     nextState.showdown = null;
+    advanceTurnRotation(nextState);
     return nextState;
   }
 
@@ -751,6 +748,7 @@ export function handleShowdownElimination(state: GameStateSnapshot): GameStateSn
   }
 
   nextState.showdown = null;
+  logNewEliminations(state, nextState);
   return evaluateAndFinalizeMatch(nextState);
 }
 
