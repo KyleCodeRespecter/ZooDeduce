@@ -1,10 +1,10 @@
 import {
   GameStateSnapshot,
   PlayerData,
-  CardData,
-  CardType, TOTAL_CARD_DISTRIBUTION
+  TOTAL_CARD_DISTRIBUTION
 } from '../../types/game.types';
 import { isTigerCardPlayMandatory } from '../utils/player.utils.ts';
+import { CardData, CardType } from '../../types/card.types.ts';
 
 export interface BotMemorySnapshot {
   knownOpponentHands: Record<string, CardType>;
@@ -157,6 +157,8 @@ export function executeBotCardSelection(
 /**
  * Selects an intelligent target ID for a bot from a pre-filtered list of legal options.
  */
+
+//TODO: Bot played an owl card on unknown instead of a valid player
 export function selectOptimalBotTarget(
   _state: GameStateSnapshot,
   botPlayer: PlayerData,

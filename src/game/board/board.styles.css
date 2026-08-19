@@ -193,7 +193,7 @@ html, body {
     height: 100%;
 }
 
-.client-feed-placeholder-box {
+.client-feed-container {
     flex: 1;
     min-width: 200px;
     background-color: #151515;
@@ -201,6 +201,40 @@ html, body {
     border-radius: 0.5rem;
     box-sizing: border-box;
     height: 100%;
+    display: flex;
+    flex-direction: column;
+    max-height: 100%;
+    overflow: hidden;
+    padding: clamp(0.75rem, 1.5vw, 1.25rem);
+}
+
+.feed-header-title {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.8rem;
+    color: #00cccc;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    flex-shrink: 0; /* Freeze title text line box size */
+}
+
+.feed-log-stream-box {
+    width: 100%;
+    flex: 1 1 auto;
+    overflow-y: auto !important;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    box-sizing: border-box;
+    padding-right: 0.25rem;
+}
+
+.feed-log-entry {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    color: #a5a5a5;
+    word-break: break-word;
 }
 
 .client-hand-zone {
@@ -257,7 +291,7 @@ html, body {
         height: auto !important;
     }
 
-    .client-feed-placeholder-box {
+    .client-feed-container {
         order: 1;
         width: 100% !important;
         background-color: #151515;
@@ -267,5 +301,18 @@ html, body {
     }
 }
 
+.feed-log-stream-box::-webkit-scrollbar {
+    width: 4px;
+}
+.feed-log-stream-box::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.01);
+}
+.feed-log-stream-box::-webkit-scrollbar-thumb {
+    background: #333333;
+    border-radius: 2px;
+}
+.feed-log-stream-box::-webkit-scrollbar-thumb:hover {
+    background: #00cccc;
+}
 
 

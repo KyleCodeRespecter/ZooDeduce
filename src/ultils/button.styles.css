@@ -2,19 +2,20 @@
 .in-game-rules-toggle,
 .menu-button,
 .play-game-button,
-.back-to-main-menu-button {
+.back-to-main-menu-button,
+.overlay-acknowledge-button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-
+    padding: 0.85rem 2rem;
+    background-color: #00cccc;
     color: #121212;
-    background-color: #77cdcd;
-    border: 1px solid #2c7878;
-    border-radius: 6px;
-    padding: 0.5rem 1.25rem;
-    font-weight: 700;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 800;
+    font-size: 1rem;
     cursor: pointer;
-    transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+    transition: background-color 0.2s ease, transform 0.1s ease;
 }
 
 .menu-button {
@@ -24,16 +25,16 @@
 .in-game-rules-toggle:hover,
 .menu-button:hover,
 .play-game-button:hover,
-.back-to-main-menu-button:hover {
-    background-color: #00cccc;
-    border-color: #00cccc;
-    box-shadow: 0 0 12px rgba(0, 204, 204, 0.35);
+.back-to-main-menu-button:hover,
+.overlay-acknowledge-button:hover {
+    background-color: #00ffff;
 }
 
 .in-game-rules-toggle:active,
 .menu-button:active,
 .play-game-button:active,
-.back-to-main-menu-button:active {
+.back-to-main-menu-button:active,
+.overlay-acknowledge-button:active {
     transform: scale(0.97);
 }
 

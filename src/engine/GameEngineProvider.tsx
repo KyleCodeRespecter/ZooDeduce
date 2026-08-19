@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { GameEngineContext } from './game.engine.context.ts';
-import { CardType, GamePhase, GameStateSnapshot, PlayerConfig } from '../types/game.types.ts';
+import { GamePhase, GameStateSnapshot, PlayerConfig } from '../types/game.types.ts';
+import { CardType } from '../types/card.types.ts';
 import {
   handleCardPlayPipeline, handleCardSelectResolution, handlePeekTurn, handleShowdownElimination,
   handleStartTurn,
@@ -35,9 +36,6 @@ export function GameEngineProvider({
       return;
     }
 
-    updatedState.currentPlayerIndex =
-      (updatedState.currentPlayerIndex + 1) % updatedState.players.length;
-
     const finalizedSnapshot = handleStartTurn(updatedState);
     setGameState(finalizedSnapshot);
   };
@@ -49,9 +47,6 @@ export function GameEngineProvider({
 
     nextState.owlNotice = null;
     nextState.targetPeekRequest = null;
-
-    nextState.currentPlayerIndex =
-      (nextState.currentPlayerIndex + 1) % nextState.players.length;
 
     const finalizedSnapshot = handleStartTurn(nextState);
     setGameState(finalizedSnapshot);
@@ -78,7 +73,8 @@ export function GameEngineProvider({
       stateAfterPlay.activeTargetRequest !== null ||
       stateAfterPlay.targetPeekRequest !== null ||
       stateAfterPlay.cardSelectRequest !== null ||
-      stateAfterPlay.owlNotice !== null
+      stateAfterPlay.owlNotice !== null ||
+      stateAfterPlay.showdown !== null
     ) {
       setGameState(stateAfterPlay);
       return; // Safe freeze. Awaits overlay menu selections.
@@ -119,6 +115,7 @@ export function GameEngineProvider({
 
 
   const startGame = (opponentCount: number) => {
+    // 1. Generate the starting roster configs array
     const setupConfigs: PlayerConfig[] = [
       { name: 'HumanPlayer_1', isBot: false },
       ...Array.from({ length: opponentCount }, (_, i) => ({
@@ -126,10 +123,23 @@ export function GameEngineProvider({
         isBot: true,
       })),
     ];
-    const readyToPlaySnapshot = handleStartTurn(initializeMatch(setupConfigs));
+
+    const cleanMatchSnapshot = initializeMatch(setupConfigs);
+    let readyToPlaySnapshot = JSON.parse(
+      JSON.stringify(cleanMatchSnapshot),
+    ) as GameStateSnapshot;
+    let firstActivePlayer = readyToPlaySnapshot.players[0];
+
+    if (readyToPlaySnapshot.deck.length > 0) {
+      const initialCardDrawn = readyToPlaySnapshot.deck.shift();
+      if (initialCardDrawn) {
+        firstActivePlayer.hand.push(initialCardDrawn);
+      }
+    }
     setGameState(readyToPlaySnapshot);
     setGamePhase(GamePhase.Gameplay);
   };
+
 
   const endGame = () => {
     if (gamePhase === GamePhase.GameOver) return;

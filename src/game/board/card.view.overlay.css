@@ -52,24 +52,3 @@
     justify-content: center;
     align-items: center;
 }
-
-.overlay-acknowledge-button {
-    padding: 0.85rem 2rem;
-    background-color: #00cccc;
-    color: #121212;
-    border: none;
-    border-radius: 0.5rem;
-    font-weight: 800;
-    font-size: 1rem;
-    cursor: pointer;
-    align-self: center;
-    transition: background-color 0.2s ease, transform 0.1s ease;
-}
-
-.overlay-acknowledge-button:hover {
-    background-color: #00ffff;
-}
-
-.overlay-acknowledge-button:active {
-    transform: scale(0.97);
-}

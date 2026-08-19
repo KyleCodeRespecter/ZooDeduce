@@ -3,6 +3,7 @@ import React from 'react';
 import { CardViewOverlayProps } from './board.types';
 import { Card} from '../components/Card.tsx';
 import './card.view.overlay.css';
+import '../../ultils/button.styles.css'
 
 export const CardViewOverlay: React.FC<CardViewOverlayProps> = ({
   title,

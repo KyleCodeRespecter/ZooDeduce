@@ -1,5 +1,5 @@
 import { useActiveGameState } from '../../engine/game.engine.context.ts';
-import { CardType } from '../../types/game.types.ts';
+import { CardType } from '../../types/card.types.ts';
 import './showdown.overlay.css';
 import '../components/user.discard.field.css'
 

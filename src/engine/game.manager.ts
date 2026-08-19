@@ -1,8 +1,6 @@
 import { createFreshDeck, drawCard, shuffleDeck } from './utils/deck.utils.ts';
 import { createPlayer, dealStartingHands, getActivePlayer } from './utils/player.utils.ts';
 import {
-  CardData,
-  CardType,
   GameStateSnapshot,
   PlayerConfig,
   PlayerData,
@@ -15,6 +13,8 @@ import {
   executeBotBeaverSelection,
   selectOptimalBotTarget
 } from './bot-logic/bot.manager.ts';
+import { MatchLogEntry } from '../ultils/feed.utils.ts';
+import { CardData, CardType } from '../types/card.types.ts';
 
 /**
  * Initializes a new match snapshot, burning initial seed cards and dealing hands.
@@ -43,6 +43,10 @@ export function initializeMatch(
     currentDeck,
   );
 
+  const initialLog: MatchLogEntry = {
+    eventType: 'GAME_START',
+  };
+
   return {
     players: updatedPlayers,
     deck: remainingDeck,
@@ -54,7 +58,8 @@ export function initializeMatch(
     cardSelectRequest: null,
     showdown: null,
     owlNotice: null,
-    botMemories: {}
+    botMemories: {},
+    actionFeed: [initialLog]
   };
 }
 
@@ -86,11 +91,13 @@ export function handleCardPlayPipeline(
     );
 
     if (validTargetIds.length === 0) {
-      return executeFizzleResolution(
+      return completeTurnWithResolution(
+        currentSnapshot,
         nextState,
         activePlayer,
         cardIndex,
         playedCard,
+        'FIZZLED (Targets Protected)',
       );
     }
     // condition if meerkat cannot guess anything
@@ -98,11 +105,13 @@ export function handleCardPlayPipeline(
       playedCard.type === CardType.Meerkat &&
       isMeerkatGuessPoolExhausted(nextState)
     ) {
-      return executeFizzleResolution(
+      return completeTurnWithResolution(
+        currentSnapshot,
         nextState,
         activePlayer,
         cardIndex,
         playedCard,
+        'FIZZLED (Guess Pool Exhausted)',
       );
     }
     // condition if there are not two cards for the beaver to draw
@@ -110,12 +119,14 @@ export function handleCardPlayPipeline(
       nextState.deck.length < 2
     )
     {
-      return executeFizzleResolution(
+      return completeTurnWithResolution(
+        currentSnapshot,
         nextState,
         activePlayer,
         cardIndex,
         playedCard,
-      )
+        'FIZZLED (Deck Exhausted)',
+      );
     }
 
     // Assess if the engine can auto-bypass selection menus (1-on-1 or Bots)
@@ -127,10 +138,6 @@ export function handleCardPlayPipeline(
           validTargetIds,
           playedCard,
         );
-        if (finalTargetId)
-        {
-          finalGuess = CardType.Owl // default
-        }
       } else {
         finalTargetId = validTargetIds[0]; // Human auto-bypass selects the lone target
       }
@@ -150,16 +157,32 @@ export function handleCardPlayPipeline(
 
   // Run the memory audit before executing effect rules, capturing the exact state of the board
   auditBotMemoriesOnCardPlay(nextState, activePlayer, playedCard.type);
+  if (
+    activePlayer.isBot &&
+    playedCard.type === CardType.Meerkat &&
+    finalTargetId
+  ) {
+    finalGuess = calculateSmartBotGuess(nextState, activePlayer, finalTargetId);
+  }
+
+  appendLogToFeed(
+    nextState,
+    activePlayer.name,
+    playedCard.type,
+    null,
+    finalTargetId,
+    finalGuess ? CardType[finalGuess] : null,
+  );
+
 
   if (finalTargetId || !playedCard.requiresTarget) {
-    if (activePlayer.isBot) {
-      finalGuess = calculateSmartBotGuess(nextState, activePlayer, finalTargetId);
-    }
     executeCardEffectRules(nextState, playedCard, finalTargetId, finalGuess);
   }
 
   const evaluatedState = evaluateAndFinalizeMatch(nextState);
-  if (evaluatedState.winnerId) return evaluatedState;
+  if (evaluatedState.winnerId) {
+    return evaluatedState;
+  }
 
   // checking the evaluated state of the beaver card
   if (evaluatedState.cardSelectRequest !== null) {
@@ -186,10 +209,11 @@ export function handleCardPlayPipeline(
 
     if (!isHumanInvolved) {
       gameLogger.log(
-        `[AI SHOWDOWN BYPASS]: Pure Bot-vs-Bot duel detected. Resolving instantly in background.`,
+        `[AI SHOWDOWN BYPASS]: Pure Bot-vs-Bot duel detected. Resolving.`,
       );
       let resolvedState = handleShowdownElimination(evaluatedState);
-      advanceTurnRotation(resolvedState);
+
+      logNewEliminations(currentSnapshot, resolvedState);
       return resolvedState;
     }
     gameLogger.log(
@@ -208,15 +232,13 @@ export function handleCardPlayPipeline(
     const currentActivePlayer = getActivePlayer(evaluatedState);
     if (currentActivePlayer.isBot) {
       evaluatedState.targetPeekRequest = null;
-      advanceTurnRotation(evaluatedState);
       return evaluatedState;
     }
     return evaluatedState;
   }
 
-  // generic turn advancement. Other states should eventually end here
-  advanceTurnRotation(evaluatedState);
   gameLogger.log(`human has moved turn to : ${evaluatedState.players[evaluatedState.currentPlayerIndex]}`);
+  logNewEliminations(currentSnapshot, evaluatedState);
   return evaluatedState;
 }
 
@@ -228,10 +250,13 @@ export function handleStartTurn(
 ): GameStateSnapshot {
   const nextState = cloneSnapshot(currentSnapshot);
 
-  // If no cards to draw we can finalize the game
-  if (nextState.deck.length === 0) {
+  const structuralVictoryCheck = evaluateAndFinalizeMatch(nextState);
+  if (structuralVictoryCheck.winnerId || nextState.deck.length === 0) {
     return evaluateAndFinalizeMatch(nextState);
   }
+
+  // move to the next player
+  advanceTurnRotation(nextState);
 
   let activePlayer = getActivePlayer(nextState);
   let safetyCounter = 0;
@@ -259,7 +284,6 @@ export function handlePeekTurn(currentSnapshot: GameStateSnapshot) {
   const nextState = cloneSnapshot(currentSnapshot);
 
   nextState.targetPeekRequest = null;
-  advanceTurnRotation(nextState);
 
   return handleStartTurn(nextState);
 }
@@ -324,28 +348,6 @@ function shouldBypassTargeting(
 }
 
 /**
- * Immutably discards a card if all viable targets have active protections active.
- */
-function executeFizzleResolution(
-  state: GameStateSnapshot,
-  activePlayer: PlayerData,
-  cardIndex: number,
-  playedCard: CardData,
-): GameStateSnapshot {
-  gameLogger.log(
-    `[ENGINE]: All targets protected. ${activePlayer.name}'s ${CardType[playedCard.type]} fizzled.`,
-  );
-
-  activePlayer.hand.splice(cardIndex, 1);
-  activePlayer.discardPile.push(playedCard.type);
-  state.activeTargetRequest = null;
-  state.targetPeekRequest = null;
-  advanceTurnRotation(state);
-
-  return state;
-}
-
-/**
  * Evaluates dual end conditions to apply joint or absolute victory ids to the tree.
  */
 function evaluateAndFinalizeMatch(state: GameStateSnapshot): GameStateSnapshot {
@@ -374,7 +376,6 @@ function evaluateAndFinalizeMatch(state: GameStateSnapshot): GameStateSnapshot {
     state.winnerId = tiedWinners.map((w) => w.id).join(',');
     return state;
   }
-
   return state;
 }
 
@@ -693,7 +694,6 @@ export function handleCardSelectResolution(
   }
 
   activePlayer.hand = [cardToKeep];
-  console.log(`[ENGINE]: ${activePlayer.name} resolved Beaver selection and retained ${CardType[cardToKeep.type]}.`);
 
   let shuffledDeck = shuffleDeck(choicesPool);
   shuffledDeck.forEach((card) => {
@@ -703,7 +703,6 @@ export function handleCardSelectResolution(
   });
 
   nextState.cardSelectRequest = null;
-  advanceTurnRotation(nextState);
   return nextState;
 }
 
@@ -713,8 +712,9 @@ export function handleCardSelectResolution(
 export function handleShowdownElimination(state: GameStateSnapshot): GameStateSnapshot {
   const nextState = cloneSnapshot(state);
   const showdown = nextState.showdown;
+  nextState.showdown = null;
+  // Ties need to manually update the turn
   if (!showdown || !showdown.winnerId) {
-    nextState.showdown = null;
     return nextState;
   }
 
@@ -727,8 +727,8 @@ export function handleShowdownElimination(state: GameStateSnapshot): GameStateSn
     if (deadCard) loser.discardPile.push(deadCard.type);
   }
 
-  nextState.showdown = null;
-  return evaluateAndFinalizeMatch(nextState);
+  logNewEliminations(state, nextState);
+  return nextState;
 }
 
 /**
@@ -746,6 +746,94 @@ export function isHumanPlayerId(state: GameStateSnapshot, playerId: string): boo
 function isHumanInvolvedInShowdown(state: GameStateSnapshot, showdown: StagBeetleShowdown): boolean {
   return isHumanPlayerId(state, showdown.challengerId) || isHumanPlayerId(state, showdown.targetId);
 }
+
+function appendLogToFeed(
+  state: GameStateSnapshot,
+  actorName: string,
+  cardType: CardType,
+  eventType: string | null = null,
+  targetName: string | null = null,
+  extraDetails: string | null = null,
+): void {
+
+  if (!state.actionFeed) state.actionFeed = [];
+
+  const targetPlayer = targetName
+    ? state.players.find((p) => p.id === targetName)
+    : null;
+  const eventKey = eventType
+    ? eventType
+    : `${CardType[cardType].toUpperCase()}_PLAY`;
+
+  const freshLog: MatchLogEntry = {
+    eventType: eventKey as any,
+    actorName: actorName,
+    cardType: cardType,
+    targetName: targetPlayer ? targetPlayer.name : undefined,
+    extraDetails: extraDetails || undefined,
+  };
+
+  state.actionFeed = [freshLog, ...state.actionFeed];
+}
+
+function logNewEliminations(
+  initialSnapshot: GameStateSnapshot,
+  mutatedSnapshot: GameStateSnapshot,
+): void {
+  initialSnapshot.players.forEach((prevPlayer) => {
+    const nextPlayer = mutatedSnapshot.players.find(
+      (p) => p.id === prevPlayer.id,
+    );
+    if (nextPlayer && !prevPlayer.isEliminated && nextPlayer.isEliminated) {
+      appendLogToFeed(
+        mutatedSnapshot,
+        nextPlayer.name,
+        0 as CardType,
+        'ELIMINATION',
+      );
+    }
+  });
+}
+
+/**
+ * Concludes a card play turn that resulted in a fizzle or non-overlay action,
+ * handles immutable hand removal, logs the telemetry, and rotates the player index clock.
+ */
+function completeTurnWithResolution(
+  currentSnapshot: GameStateSnapshot,
+  nextState: GameStateSnapshot,
+  activePlayer: PlayerData,
+  cardIndex: number,
+  playedCard: CardData,
+  logDetails: string
+): GameStateSnapshot {
+
+  activePlayer.hand.splice(cardIndex, 1);
+  activePlayer.discardPile.push(playedCard.type);
+  nextState.activeTargetRequest = null;
+
+  appendLogToFeed(
+    nextState,
+    activePlayer.name,
+    playedCard.type,
+    null,
+    null,
+    logDetails
+  );
+
+  const evaluatedState = evaluateAndFinalizeMatch(nextState);
+  if (evaluatedState.winnerId) {
+    logNewEliminations(currentSnapshot, evaluatedState);
+    return evaluatedState;
+  }
+
+  advanceTurnRotation(evaluatedState);
+
+  logNewEliminations(currentSnapshot, evaluatedState);
+
+  return evaluatedState;
+}
+
 
 
 

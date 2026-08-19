@@ -1,4 +1,4 @@
-import { CardType } from '../../types/game.types';
+import { CardType } from '../../types/card.types.ts';
 import { UserDiscardFieldProps } from '../../types/fields.types';
 import './user.discard.field.css';
 

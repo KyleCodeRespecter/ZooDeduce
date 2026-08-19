@@ -1,4 +1,5 @@
-import { CardData, CardType , TOTAL_CARD_DISTRIBUTION} from '../../types/game.types.ts';
+import {TOTAL_CARD_DISTRIBUTION} from '../../types/game.types.ts';
+import { CardData, CardType } from '../../types/card.types.ts';
 
 export function createFreshDeck(): CardData[] {
 

@@ -92,6 +92,7 @@ export const GameBoard: React.FC = () => {
         player={clientPlayer}
         isCurrentTurn={activePlayer?.id === clientPlayer.id}
         onPlayCard={playCardAction}
+        actionFeed={gameState.actionFeed ?? []}
       />
     </div>
   );

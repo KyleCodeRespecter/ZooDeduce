@@ -1,5 +1,6 @@
-import { PlayerData, CardData, PlayerConfig, CardType, GameStateSnapshot } from '../../types/game.types.ts';
+import { PlayerData, PlayerConfig, GameStateSnapshot } from '../../types/game.types.ts';
 import { drawCard } from './deck.utils.ts';
+import { CardData, CardType } from '../../types/card.types.ts';
 
 /**
  * Factory function that instantiates a baseline structural data packet

@@ -1,4 +1,4 @@
-import { CardType } from '../../types/game.types';
+import { CardType } from '../../types/card.types.ts';
 
 export function getCardDescription(type: CardType): string {
   switch (type) {

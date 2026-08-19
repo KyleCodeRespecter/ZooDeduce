@@ -1,5 +1,5 @@
 
-import { CardData, CardType } from '../../types/game.types';
+import { CardData, CardType } from '../../types/card.types.ts';
 import { Card } from './Card.tsx';
 import { UserFieldProps } from '../../types/fields.types.ts';
 import './user.field.css';
